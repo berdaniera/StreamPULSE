@@ -15,12 +15,13 @@ ui = fluidPage(
   ),
   fluidRow(
     wellPanel(actionButton("flag_new", "Flag selected"),
-              actionButton("flag_erase", "Erase selected"),
-              actionButton("flag_clear", "Clear all", 
+              actionButton("flag_erase", "Un-flag selected"),
+              actionButton("flag_clear", "Clear all flags", 
                            style="color: #fff; background-color: #009E73"),#d9534f
               actionButton("flag_send", "Approve flags", 
                            style="color: #fff; background-color: #337ab7; border-color: #2e6da4"),
-              textInput("flag_comments","",width='500px',placeholder="Enter flag comments"))
+              textInput("flag_comments","",width='500px',placeholder="Enter flag comments"),
+              p("I am also planning to add a dropdown to choose common flags - what would those be?"))
   ),
   fluidRow(
     column(width = 12,

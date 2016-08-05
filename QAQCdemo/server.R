@@ -3,7 +3,7 @@ library(ggplot2)
 library(shiny)
 library(e1071)
 library('aws.s3')
-cbPalette <- c("#333333", "deeppink", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cbPalette <- c("#333333", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
 server = function(input, output,session){
   flags = reactiveValues(d=NULL)
@@ -78,7 +78,7 @@ server = function(input, output,session){
       # PLOT THE DATA
       output$flag_plot <- renderPlot({
         ggplot(flags$d, aes(TIMESTAMP,value,col=f)) + 
-          geom_point(shape=20,size=flags$d$f*4+1) + 
+          geom_point(shape=20,size=flags$d$f*6+1) + 
           facet_grid(variable~.,scales='free_y') + 
           theme(legend.position='none') + 
           scale_colour_manual(values=cbPalette)
