@@ -16,10 +16,10 @@ shinyServer(function(input, output) {
 
   model = reactive({
     aaa = input$all
-    fff = input$filt
     err = ifelse(input$err == 0, 0.001, input$err)
     if(aaa){ddm = dd}else{ddm = moddat()}
-    if(fff){ddm = ddm %>% filter(gpp > -1.5 & er < 3)}
+    if(input$filt_gpp){ddm = ddm %>% filter(gpp > -1.5)}
+    if(input$filt_er){ddm = ddm %>% filter(er < 3)}
     mod = svm(ddm %>% select(gpp,er,K600), # can use eval(parse(text=input$cond))
                 type='one-classification', kernel='radial',
                 scale=TRUE, nu=err)

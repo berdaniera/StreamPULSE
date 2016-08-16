@@ -11,7 +11,8 @@ shinyUI(fluidPage(
       p("Number of observation days:", textOutput("numobs",inline=TRUE), "Error points:", textOutput("numerr",inline=TRUE)),
       sliderInput("err", "Select error threshold:", 0, 0.2, 0.01),
       checkboxInput("all", "Pool across all sites?", TRUE),
-      checkboxInput("filt", "Filter for gpp>0 and er<0", TRUE)
+      checkboxInput("filt_er", "Filter for er<0", TRUE),
+      checkboxInput("filt_gpp", "Filter for gpp>0", TRUE)
     ),
 
     mainPanel(
