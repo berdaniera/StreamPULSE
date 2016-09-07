@@ -1,6 +1,8 @@
 library(shiny)
 library(shinydashboard)
 library(DT)
+library(ggplot2)
+options(shiny.maxRequestSize=30*1024^2) # 30 MB upload max
 
 header <- dashboardHeader(title = "StreamPULSE Hub")
 
@@ -10,7 +12,7 @@ sidebar <- dashboardSidebar(sidebarMenu(
   menuItemOutput('Cleaner'),
   menuItemOutput("Visualizer"),
   menuItemOutput('Modeler'),
-  menuItemOutput('SOPs')  
+  menuItemOutput('SOPs')
 ))
 
 body <- dashboardBody(
@@ -30,29 +32,18 @@ body <- dashboardBody(
             )
     ),
     tabItem(tabName = "upload",
-            h2("Data upload"),
-            span(strong("Choose a file to upload. "),"You can select and upload multiple files at once. You can also perform the upload multiple times."),
+            h2("Data upload and tagging/flagging"),
+            HTML(paste("<b>Choose a file to upload.</b>",
+              "Please only choose one file at a time. And be sure to check out the <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>data upload SOP</a>. You can perform the upload/QAQC procedure multiple times.<br>",
+              "For now, we are equipped to accept raw '.csv' data files from Campbell Scientific CR1000 and Hobo dataloggers.",
+              "<u>If you have data from another datalogger</u>, you can either <a href='mailto:aaron.berdanier@gmail.com'>email Aaron</a> a file sample <i>or</i> ensure that the data file has only one header row and is comma separated.")),
+            br(),br(),
             uiOutput('fileup'),
             uiOutput('filestatsupload'),
-            #uiOutput('awsupload'),
             br(),
-            textOutput('uploadstatus')
-    ),
-    tabItem(tabName = "clean",
-            h2("Clean it up!"),
-            p("Cleaning within timeseries can partially be automated, to check for sensor errors."),
-            p("We will also have an interface for investigator cleaning: manual flagging and checking."),
-            p("From here, level 1 data will be automatically uploaded to ScienceBase."),
-            h3("Should be up and running before mid-August (expect automated flagging by end of July)")
-#             FLAGGING SCRIPT
-#             fluidRow(
-#               column(width = 6,
-#                      plotOutput("flag_plot", height=300,brush = brushOpts(id = "plot_brush",direction="x"))
-#               ),
-#               column(width = 4,
-#                      wellPanel(actionButton("flag_new", "Flag"),actionButton("flag_clear", "Reset"))
-#               )
-#             )
+            textOutput('uploadstatus'),
+            uiOutput('flagui'),
+            uiOutput('flagplt')
     ),
     tabItem(tabName = "view",
             h2("Data view and download"),
@@ -63,6 +54,9 @@ body <- dashboardBody(
             h2("modeler interface"),
             p("Later this fall we will have an area for visualizing model output."),
             p("We may also implement a section to 'request' model runs with specific attributes.")
+    ),
+    tabItem(tabName = "sop",
+      HTML('<iframe src="https://drive.google.com/embeddedfolderview?id=0B7rFlnRNN7_dUW8tc1h5REZfQk0#list" style="width:100%; height:600px; border:0;"></iframe>')
     )
   ))
 
