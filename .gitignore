@@ -1,3 +1,5 @@
 *.Renviron
 *.csv
 *.db
+*.rds
+*.httr-oauth
