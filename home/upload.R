@@ -28,7 +28,7 @@ getCSdat = function(ff){
 streampulseFile = function(inFile){
   datalogger = sub("(.*_)(.*)\\..*", "\\2", inFile$name)
   #upload raw to aws
-  put_object(file=inFile$datapath, object=infile$name, bucket="streampulserawdata")
+  put_object(file=inFile$datapath, object=inFile$name, bucket="streampulserawdata")
   if(datalogger == "CS"){ # cs data logger
     getCSdat(inFile$datapath)
   }else if(grepl("H",datalogger)){ # hobo data logger
@@ -49,6 +49,7 @@ dataup = reactive({
   streampulseFile(inFile)
 })
 
+
 observe({
   if(!is.null(dataup())){
     dat = dataup()
@@ -56,11 +57,16 @@ observe({
     dat$DateTimeUTC = as.POSIXct(dat$DateTimeUTC)
     if("LocalDateTime" %in% colnames(dat)) dat = select(dat, -LocalDateTime)
 
-    daterange = range(dat$DateTimeUTC)
+    site$daterange = range(dat$DateTimeUTC)
     filename = sub("(.*)\\..*", "\\1", input$file1$name) #"DF_AaronsSiteNameXXX_201601225_C.csv"
     site$id = paste0(unlist(strsplit(filename,"_"))[-3],collapse="_")
-    str1 = paste("Data source:<b>",site$id,"</b><br>Date range:",daterange[1],"to",daterange[2])
+    str1 = paste("Data source:<b>",site$id,"</b><br>Date range:",site$daterange[1],"to",site$daterange[2])
     #drop_dir(dtoken=dto) # view all data in dropbox
+    # reset all ui stuff
+    output$flagui = renderUI(HTML("<br>"))
+    output$flatplt = renderUI(HTML("<br>"))
+    output$loadtext = renderText(paste0(""))
+    flags$d = NULL
 
     # check if training data exists
     traindir = drop_dir("SPtrainingdata",dtoken=dto) # all data in training directory
@@ -96,17 +102,19 @@ observe({
           )
         )
       })
-      observeEvent(input$newtrainingdata,{
-        # the current data is the training data...
-        datacols = c(input$choosedate,input$choosedata)
-        training$dat = dat %>% select_(.dots=datacols) # exclude date time
-        colnames(training$dat)[1] = "DateTimeUTC"
-        output$filestatsupload = renderUI({
-          # maybe put in a header view of the file - preview
-          str2 = "<i>File looks good:</i> "
-          wellPanel(HTML(paste0(str1, '<h4>', str2, actionLink("QAQC", "Click here to flag and tag it."), " <u>Note:</u> this step can take a few minutes... please be patient.</h4>")))
-        })
-      })
     }
   }
+})
+
+observeEvent(input$newtrainingdata,{
+  str1 = paste("Data source:<b>",site$id,"</b><br>Date range:",site$daterange[1],"to",site$daterange[2])
+  # the current data is the training data...
+  datacols = c(input$choosedate,input$choosedata)
+  training$dat = dataup() %>% select_(.dots=datacols) # exclude date time
+  colnames(training$dat)[1] = "DateTimeUTC"
+  output$filestatsupload = renderUI({
+    # maybe put in a header view of the file - preview
+    str2 = "<i>File looks good:</i> "
+    wellPanel(HTML(paste0(str1, '<h4>', str2, actionLink("QAQC", "Click here to flag and tag it."), " <u>Note:</u> this step can take a few minutes... please be patient.</h4>")))
+  })
 })

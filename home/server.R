@@ -60,7 +60,7 @@ server <- function(input, output, session) {
   }
 
   # Site name
-  site = reactiveValues(id=NULL)
+  site = reactiveValues(id=NULL,daterange=NULL)
   # all flags and tags for a site
   allfnt = reactiveValues(aflags=NULL,atags=NULL)
 
@@ -98,11 +98,13 @@ server <- function(input, output, session) {
       logoutstr <- div(align="right",a(href="/","Log out"))
       loginpass <- box(title = "Logged in!",status="success",solidHeader=TRUE,userstr,logoutstr)
       output$loginbox <- renderUI(loginpass)
-      output$Upload <- renderMenu({
-        menuItem("Upload", icon = icon("cloud-upload")),
-          menuSubItem("Sensor data", tabname="upload"),
+      output$Upload <- renderMenu(
+        menuItem("Upload", icon = icon("cloud-upload"),
+          menuSubItem("Sensor data", tabName="upload"),
           menuSubItem("Drop samples")
-      })
+      ))
+      # output$Up1 <- renderMenu()
+      # output$Up2 <- renderMenu()
       # output$Cleaner <- renderMenu( menuItem("Cleaner", icon = icon("magic"), tabName = "clean",
       #                                        badgeLabel = "coming soon", badgeColor = "yellow") )
       output$Visualizer <- renderMenu( menuItem("Vizualizer", tabName = "view", icon = icon("line-chart")) )
