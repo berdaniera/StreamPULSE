@@ -98,7 +98,11 @@ server <- function(input, output, session) {
       logoutstr <- div(align="right",a(href="/","Log out"))
       loginpass <- box(title = "Logged in!",status="success",solidHeader=TRUE,userstr,logoutstr)
       output$loginbox <- renderUI(loginpass)
-      output$Upload <- renderMenu( menuItem("Upload", tabName = "upload", icon = icon("cloud-upload")) )
+      output$Upload <- renderMenu({
+        menuItem("Upload", icon = icon("cloud-upload")),
+          menuSubItem("Sensor data", tabname="upload"),
+          menuSubItem("Drop samples")
+      })
       # output$Cleaner <- renderMenu( menuItem("Cleaner", icon = icon("magic"), tabName = "clean",
       #                                        badgeLabel = "coming soon", badgeColor = "yellow") )
       output$Visualizer <- renderMenu( menuItem("Vizualizer", tabName = "view", icon = icon("line-chart")) )

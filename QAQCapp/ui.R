@@ -1,10 +1,9 @@
 library(shiny)
 options(shiny.maxRequestSize=30*1024^2) # 30 MB upload max
 
-shinyUI(fluidPage(title="Data flagging",
-  #tags$head( tags$style(HTML("@import url('//fonts.googleapis.com/css?family=Lato:300');")) ),
-  wellPanel(div(align="center","Timeseries data quality assurance and flagging",style="font-family:sans-serif; font-size:20px; color: #fff; text-align: center;"),
-    style="background-image: url('strip.png'); border-color: #2e6da4;"),
+shinyUI(fluidPage(title="markr/",
+  wellPanel(HTML(paste0("<center><font style='font-family:sans-serif; font-size:80px'>markr</font> <font style='font-size:55px'>",icon("magic"),"</font><br>",
+    "<font style='font-family:sans-serif; font-size:30px;'><i>Lather, rinse, repeat.</i></font></center>"))),
   sidebarPanel(
     HTML("<i>Data requirements:</i> One column named 'DateTime' with an R-readable date or time format and at least one data column."),
     fileInput('file1', '1. Upload data to test for anomalies.',

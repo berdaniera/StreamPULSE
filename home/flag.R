@@ -1,25 +1,20 @@
-# library(e1071)
-# library(dplyr)
-# library(tidyr)
-# library(readr)
-# library(ggplot2)
-# cbPalette = c("#333333", "#E69F00", "#337ab7", "#56B4E9", "#739E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-#plot(seq(1:length(cbPalette)),pch=20,col=cbPalette,cex=5)
-######## DATA CONTROLS
-
 
 #render UI
 flagui = fluidRow(
   wellPanel(
+    fluidRow(
+      column(width=6,h4(actionLink("taginstructions","Click here for instructions"))),
+      column(width=6,div(style="display:inline-block", actionLink("QAQC","Reset and erase"), style="float:right"))
+    ),
     fluidRow(column(width=12,
-      h4(actionLink("taginstructions","Click here for instructions")),
       conditionalPanel("input.taginstructions%2 == 1",
         HTML("<h3>Instructions:</h3>
         <i><b>TAGS</b> are interesting features that you recognize or recorded in field notes (e.g., a flood or certain type of disturbance).<br>
-        <b>FLAGS</b> are warnings about possible data errors that should be noted in future analysis.</i><br><br>
+        <b>FLAGS</b> are warnings about possible data errors that should be noted in future analysis (note: a data point can only be flagged once).</i><br><br>
         <ul>
           <li>Highlight data by dragging and selecting on the graph.</li>
-          <li><b>Add</b> or <b>remove</b> flagged points by highlighting and clicking the buttons below.</li>
+          <li><b>Remove NA values</b> by highlighting one value that is NA and clicking 'Mark and remove NA values' button. <i>Note:</i> you only need to highlight one NA value to mark all values that match it. This will permanently remove those data values from the data set.</li>
+          <li><b>Add</b> or <b>Remove</b> flagged points by highlighting and clicking the 'Flag' and 'Un-flag' buttons below.</li>
           <li><b>Store</b> tags and flags by:<ol>
             <li><i>highlighting</i> the desired data,</li>
             <li><i>naming</i> the item (or choosing an appropriate previously-used flag/tag) and adding optional comments,</li>
@@ -39,7 +34,9 @@ flagui = fluidRow(
         actionButton("flag_reset", "Reset zoom", icon=icon("repeat"),
           style="color: #fff; background-color: #ff7f50; border-color: #fff"),
         actionButton("tag_store", "Store selected tags", icon=icon("database"),
-          style="color: #fff; background-color: #337ab7; border-color: #fff")
+          style="color: #fff; background-color: #337ab7; border-color: #fff"),
+        actionButton("na_rm", "Mark and remove NA values", icon=icon("times-circle"),
+          style="color: #fff; background-color: #d55e00; border-color: #fff")
       )),br(),
       fluidRow(column(width=4,
         HTML("<i>IDs should be alphanumeric [A-Z, a-z, 0-9] and contain no spaces</i>"),
@@ -98,8 +95,9 @@ observeEvent(input$QAQC,{
   dat$DateTimeUTC = as.POSIXct(dat$DateTimeUTC)
   dat = dat %>% filter(!duplicated(DateTimeUTC))
 
-  fittingdat = dat %>% select(-DateTimeUTC)
-  trainingdat = training$dat %>% select(-DateTimeUTC)
+  # data automatically includes the change in each variable too...
+  fittingdat = dat %>% select(-DateTimeUTC) %>% mutate_each(funs( delta=c(0,diff(.)) ))
+  trainingdat = training$dat %>% select(-DateTimeUTC) %>% mutate_each(funs( delta=c(0,diff(.)) ))
   # fit model
   mod = svm(trainingdat, nu=0.01, scale=TRUE, type='one-classification', kernel='radial')
   # predict flags for uploaded data
@@ -133,10 +131,10 @@ observe({ # draw plot
       ggplot(pltdat, aes(DateTimeUTC, value, col=f)) +
         geom_point(shape=20,size=pltdat$t) +
         facet_grid(variable~.,scales='free_y') +
-        theme(legend.position='none') +
+        theme(legend.position='top') + # , legend.text=c()
         scale_colour_manual(values=cbPalette, limits=levels(pltdat$f)) +
         coord_cartesian(xlim=ranges$x)
-    }, height=200*length(unique(flags$d$variable)))
+    }, height=150*length(unique(flags$d$variable)))
   }
 })
 
@@ -157,16 +155,24 @@ observeEvent(input$tag_store,{
   if(any(storetags) & input$tag_name!=""){
     wtg = which(storetags & flags$d$t==4) # which tagged
     flags$d$f[wtg] = 3 # stored tag
-    taglist = list(ID=input$tag_name, source=site$id, tags=flags$d$DateTimeUTC[wtg])
+    taglist = list(ID=input$tag_name, variable=input$plot_brush$panelvar1, source=site$id, tags=flags$d$DateTimeUTC[wtg])
     if(is.null(flags$t)){
       flags$t = list(taglist)
     }else{
       flags$t = c(flags$t, list(taglist))
     }
     fnt$utags = unique(c(fnt$utags,unlist(lapply(flags$t, function(x) x$ID)))) # unique flags
-    # updateSelectizeInput(session, "tag_name", choices=fnt$utags, server=FALSE)
   }else{
     output$loadtext = renderText("Please select tagged points and/or enter a tag name/ID")
+  }
+})
+# # REMOVE NA VALUES
+observeEvent(input$na_rm,{
+  navals = brushedPoints(df=flags$d, brush=input$plot_brush, allrows=TRUE)$selected_
+  if(any(navals)){
+    wna = which(navals)
+    nas = unique(flags$d$value[wna]) #the unique values in the NA brush
+    flags$d$value[flags$d$value%in%nas] = NA # assign all those matching values as NA
   }
 })
 
@@ -202,9 +208,7 @@ observeEvent(input$flag_store,{
     }else{
       flags$f = c(flags$f, list(flaglist))
     }
-    print(flags$f)
     fnt$uflags = unique(c(fnt$uflags,unlist(lapply(flags$f, function(x) x$ID)))) # unique flags
-    # updateSelectizeInput(session, "flag_name", choices=fnt$uflags, server=FALSE)
   }else{
     output$loadtext = renderText("Please select flagged points and/or enter a flag name/ID")
   }
@@ -253,4 +257,24 @@ observeEvent(input$flag_save,{
 
   output$loadtext = renderText(paste0("The data were successfully saved. Thank you!"))
   updateTextInput(session, "flag_comments", value="")
+})
+
+######### EXAMPLE CODE
+observeEvent(input$egdata,{ # generate new random eg data
+  y = runif(200,-3,2)
+  x = rnorm(200,y*y,2)
+  ytest = rnorm(100,mean(y),sd(y))
+  xtest = rnorm(100,mean(x),sd(x))
+  mod = svm(cbind(x,y), nu=0.01, scale=TRUE, type='one-classification', kernel='radial')
+  pred = predict(mod,cbind(xtest,ytest))
+  pcol = rep("#E69F00",100)
+  pcol[pred] = "#009E73"
+  output$egplot = renderPlot({
+    par(mar=c(4,4,0,0))
+    plot(x,y,pch=1,xlim=range(c(x,xtest)),ylim=range(c(y,ytest)),bty="n",las=1,xlab="V1",ylab="V2")
+    if(input$egshow){
+      points(xtest,ytest,pch=21,bg=pcol,cex=1.1)
+    }
+    legend("topright",c("Training data","Testing - Good","Testing - Anomaly"),pch=21,pt.bg=c("#ffffff","#009E73","#E69F00"),pt.cex=c(1,1.1,1.1))
+  })
 })

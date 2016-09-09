@@ -27,6 +27,8 @@ getCSdat = function(ff){
 # function to read streampulse file
 streampulseFile = function(inFile){
   datalogger = sub("(.*_)(.*)\\..*", "\\2", inFile$name)
+  #upload raw to aws
+  put_object(file=inFile$datapath, object=infile$name, bucket="streampulserawdata")
   if(datalogger == "CS"){ # cs data logger
     getCSdat(inFile$datapath)
   }else if(grepl("H",datalogger)){ # hobo data logger
@@ -50,10 +52,6 @@ dataup = reactive({
 observe({
   if(!is.null(dataup())){
     dat = dataup()
-    # upload raw data to dropbox
-    fptmp = file.path(tempdir(),input$file1$name)
-    write_csv(dat, fptmp)
-    drop_upload(fptmp, dest="SPrawdata", dtoken=dto)
 
     dat$DateTimeUTC = as.POSIXct(dat$DateTimeUTC)
     if("LocalDateTime" %in% colnames(dat)) dat = select(dat, -LocalDateTime)
