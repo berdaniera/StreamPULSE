@@ -81,6 +81,7 @@ flagui = fluidRow(
 )
 
 fitModel = function(){
+  output$loadtext = renderText("")
   output$flagui = renderUI(flagui)
   output$flagplt = renderUI(
     fluidRow(column(width = 12,
@@ -148,7 +149,10 @@ observe({ # draw plot
 observeEvent(input$tag_new,{
   newtags = brushedLogic(flags$d, input$plot_brush)
   # newtags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
-  if(any(newtags)) flags$d$t[newtags] = 4 # this is a TAG...
+  if(any(newtags)){
+    flags$d$t[newtags] = 4 # this is a TAG...
+    flags$d$f[newtags] = 1
+  }
 })
 # # ERASE A TAG
 observeEvent(input$tag_erase,{

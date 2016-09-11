@@ -62,7 +62,6 @@ server <- function(input, output, session) {
   # all flags and tags for a site
   allfnt = reactiveValues(aflags=NULL,atags=NULL)
 
-  output$loginbox <- renderUI(login)
   output$useBox <- renderValueBox({ valueBox(length(users$user), "Users", icon = icon("users")) })
   output$obsBox <- renderValueBox({ valueBox(paste0(0,"K"), "Observations", icon = icon("bar-chart"), color="yellow") })
   output$modBox <- renderValueBox({ valueBox(0, "Models run", icon = icon("cloud")) })
@@ -71,6 +70,7 @@ server <- function(input, output, session) {
   output$table <- renderDataTable({mda},
     options = list(paging = FALSE,searching=FALSE,ordering=FALSE),escape=FALSE,style="bootstrap",selection="none")
 
+  output$loginbox <- renderUI(login)
   observeEvent(input$Login, {
     if(!USER$Logged){ # not logged in, check if it passes
       username = input$userName
@@ -78,7 +78,7 @@ server <- function(input, output, session) {
       if (username %in% users$user & password == 'streams') { #users$pass
         USER$Name = unlist(strsplit(username,"@"))[1] # or just username
         USER$Logged = TRUE
-      }else{
+      }else{ # failed login
         output$loginbox <- renderUI(loginfail)
       }
     }
