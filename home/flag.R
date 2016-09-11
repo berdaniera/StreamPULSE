@@ -56,8 +56,6 @@ flagui = fluidRow(
           style="color:#fff; background-color: #CC79A7; border-color: #fff"),
         actionButton("flag_clear", "Clear all unstored flags", icon=icon("eraser"),
           style="color: #fff; background-color: #009E73; border-color: #fff"),#d9534f
-        actionButton("flag_reset", "Reset zoom", icon=icon("repeat"),
-          style="color: #fff; background-color: #ff7f50; border-color: #fff"),
         actionButton("flag_store", "Store selected flags", icon=icon("database"),
           style="color: #fff; background-color: #337ab7; border-color: #fff")
       )),br(),
