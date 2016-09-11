@@ -4,7 +4,7 @@ flagui = fluidRow(
   wellPanel(
     fluidRow(
       column(width=6,h4(actionLink("taginstructions","Click here for instructions"))),
-      column(width=6,div(style="display:inline-block", actionLink("QAQC","Reset and erase"), style="float:right"))
+      column(width=6,div(actionLink("resetall","Reset and clear"), style="float:right"))
     ),
     fluidRow(column(width=12,
       conditionalPanel("input.taginstructions%2 == 1",
@@ -80,15 +80,13 @@ flagui = fluidRow(
   )
 )
 
-output$flagplt = renderUI(
-  fluidRow(column(width = 12,
-    plotOutput("flagplot", height = "1500px", dblclick = "plot_dblclick", brush = brushOpts(id = "plot_brush",direction="x"))
-  ))
-)
-
-# If qaqc button is hit
-observeEvent(input$QAQC,{
+fitModel = function(){
   output$flagui = renderUI(flagui)
+  output$flagplt = renderUI(
+    fluidRow(column(width = 12,
+      plotOutput("flagplot", height = "1500px", dblclick = "plot_dblclick", brush = brushOpts(id = "plot_brush",direction="x"))
+    ))
+  )
   dat = dataup()
   #### get the data that is in the training data columns
   dat = dat %>% select_(.dots=colnames(training$dat))
@@ -109,8 +107,11 @@ observeEvent(input$QAQC,{
   d$variable = factor(d$variable, levels=unique(d$variable))
   flags$d = d
   output$fiterr = renderUI(HTML(""))
-})
+}
 
+# If qaqc button is hit
+observeEvent(input$QAQC, fitModel())
+observeEvent(input$resetall, fitModel())
 
 ######## PLOT CONTROLS
 ranges = reactiveValues(x=NULL)
@@ -131,7 +132,7 @@ observe({ # draw plot
       ggplot(pltdat, aes(DateTimeUTC, value, col=f)) +
         geom_point(shape=20,size=pltdat$t) +
         facet_grid(variable~.,scales='free_y') +
-        theme(legend.position='top') + # , legend.text=c()
+        theme(legend.position='none') + # , legend.text=c()
         scale_colour_manual(values=cbPalette, limits=levels(pltdat$f)) +
         coord_cartesian(xlim=ranges$x)
     }, height=150*length(unique(flags$d$variable)))
@@ -168,7 +169,7 @@ observeEvent(input$tag_store,{
 })
 # # REMOVE NA VALUES
 observeEvent(input$na_rm,{
-  navals = brushedPoints(df=flags$d, brush=input$plot_brush, allrows=TRUE)$selected_
+  navals = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
   if(any(navals)){
     var = input$plot_brush$panelvar1
     wna = which(navals)
