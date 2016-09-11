@@ -128,12 +128,12 @@ observe({ # draw plot
   if(!is.null(flags$d)){
     output$flagplot = renderPlot({
       flags$d$t[flags$d$f != 0] = 4
-      pltdat = flags$d %>% filter(!is.na(value))
-      ggplot(pltdat, aes(DateTimeUTC, value, col=f)) +
-        geom_point(shape=20,size=pltdat$t) +
+#      pltdat = flags$d %>% filter(!is.na(value))
+      ggplot(flags$d, aes(DateTimeUTC, value, col=f)) +
+        geom_point(shape=20,size=flags$d$t) +
         facet_grid(variable~.,scales='free_y') +
         theme(legend.position='none') + # , legend.text=c()
-        scale_colour_manual(values=cbPalette, limits=levels(pltdat$f)) +
+        scale_colour_manual(values=cbPalette, limits=levels(flags$d$f)) +
         coord_cartesian(xlim=ranges$x)
     }, height=150*length(unique(flags$d$variable)))
   }
