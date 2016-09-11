@@ -18,7 +18,9 @@ mda <- data.frame(Level=c("Level 0","Level 1A","Level 1B","Level 2","Level 3"),
 
 updatestab <- data.frame(Date=c('2016-09-06','2016-09-03','2016-07-08','2016-07-01'),Up=c("QA/QC interface linked with data upload","SOP documents linked in","Dashboard online, accepting file uploads","Dashboard created"))
 
-s3load('streampulseusers.Rdata','streampulse') # load user dataset
+#s3load('streampulseusers.Rdata','streampulse') # load user dataset
+drop_get(path="streampulseusers.Rdata",local_file=file.path(tempdir(),"spusers.Rdata"),dtoken=dto,overwrite=TRUE) # getting rda file
+load(file.path(tempdir(),"spusers.Rdata")) # load the Rda file
 
 Logged <- FALSE
 LoginPass <- 0 #0: not attempted, -1: failed, 1: passed

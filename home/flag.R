@@ -113,6 +113,10 @@ fitModel = function(){
 observeEvent(input$QAQC, fitModel())
 observeEvent(input$resetall, fitModel())
 
+
+# Function for getting rows that are in brush
+brushedLogic = function(df,pb) c(df[pb$mapping$panelvar1]==pb$panelvar1 & df[pb$mapping$x]>pb$xmin & df[pb$mapping$x]<pb$xmax)
+
 ######## PLOT CONTROLS
 ranges = reactiveValues(x=NULL)
 observeEvent(input$plot_dblclick,{
@@ -142,19 +146,22 @@ observe({ # draw plot
 ######## TAG CONTROLS
 # # ADD A TAG
 observeEvent(input$tag_new,{
-  newtags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+  newtags = brushedLogic(flags$d, input$plot_brush)
+  # newtags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
   if(any(newtags)) flags$d$t[newtags] = 4 # this is a TAG...
 })
 # # ERASE A TAG
 observeEvent(input$tag_erase,{
-  erasetags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
-  if(any(erasetags)) flags$d$t[which(erasetags & flags$d$t==4)] = 0.5 # revert tags that were tags
+  erasetags = brushedLogic(flags$d, input$plot_brush)
+  # erasetags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+  if(any(erasetags)) flags$d$t[which(erasetags)] = 0.5 # revert tags that were tags
 })
 # # STORE TAGS
 observeEvent(input$tag_store,{
-  storetags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+  storetags = brushedLogic(flags$d, input$plot_brush)
+  # storetags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
   if(any(storetags) & input$tag_name!=""){
-    wtg = which(storetags & flags$d$t==4) # which tagged
+    wtg = which(storetags & flags$d$t==4) # which tagged in the brush
     flags$d$f[wtg] = 3 # stored tag
     taglist = list(ID=input$tag_name, variable=input$plot_brush$panelvar1, source=site$id, by=USER$Name, tags=flags$d$DateTimeUTC[wtg])
     if(is.null(flags$t)){
@@ -169,24 +176,26 @@ observeEvent(input$tag_store,{
 })
 # # REMOVE NA VALUES
 observeEvent(input$na_rm,{
-  navals = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+  navals = brushedLogic(flags$d, input$plot_brush)
+  # navals = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
   if(any(navals)){
     var = input$plot_brush$panelvar1
-    wna = which(navals)
-    nas = unique(flags$d$value[wna]) #the unique values in the NA brush
-    flags$d$value[which(flags$d$value%in%nas & flags$d$variable == var)] = NA # assign all those matching values as NA
+    nas = unique(flags$d$value[navals]) #the unique values in the NA brush
+    flags$d$value[which(flags$d$value %in% nas & flags$d$variable == var)] = NA # assign all those matching values as NA
   }
 })
 
 ######## FLAG CONTROLS
 # # ADD A NEW FLAG
 observeEvent(input$flag_new,{
-  newflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+  newflags = brushedLogic(flags$d, input$plot_brush)
+  #newflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
   if(any(newflags)) flags$d$f[newflags] = 1
 })
 # # ERASE A FLAG
 observeEvent(input$flag_erase,{
-  eraseflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+  eraseflags = brushedLogic(flags$d, input$plot_brush)
+  #eraseflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
   if(any(eraseflags)){
     flags$d$f[eraseflags] = 0
     flags$d$t[eraseflags] = 0.5
@@ -200,7 +209,8 @@ observeEvent(input$flag_clear,{
 })
 # STORE FLAGS
 observeEvent(input$flag_store,{
-  storeflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+  storeflags = brushedLogic(flags$d, input$plot_brush)
+  #storeflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
   if(any(storeflags) & input$flag_name!=""){
     wflg = which(storeflags & flags$d$f==1)
     flags$d$f[wflg] = 2 # stored!
