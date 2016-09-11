@@ -22,10 +22,6 @@ updatestab <- data.frame(Date=c('2016-09-06','2016-09-03','2016-07-08','2016-07-
 drop_get(path="streampulseusers.Rdata",local_file=file.path(tempdir(),"spusers.Rdata"),dtoken=dto,overwrite=TRUE) # getting rda file
 load(file.path(tempdir(),"spusers.Rdata")) # load the Rda file
 
-Logged <- FALSE
-LoginPass <- 0 #0: not attempted, -1: failed, 1: passed
-username <- ""
-
 login <- box(title = "Login",status="primary",solidHeader=TRUE,#collapsible=TRUE,
              textInput("userName", "Username",), # make this orange
              passwordInput("passwd", "Password"),
@@ -41,7 +37,7 @@ loginfail <- box(title = "Login",status="danger",solidHeader=TRUE,#collapsible=T
 
 
 server <- function(input, output, session) {
-  USER <<- reactiveValues(Logged = Logged, LoginPass = LoginPass, Name = username)
+  USER = reactiveValues(Logged = FALSE, Name = "")
   training = reactiveValues(dat=NULL)
   flags = reactiveValues(d=NULL,f=NULL,t=NULL) # placeholder for model flagged data
   # d is the data with a flag column (f)
@@ -66,24 +62,7 @@ server <- function(input, output, session) {
   # all flags and tags for a site
   allfnt = reactiveValues(aflags=NULL,atags=NULL)
 
-
-  observe({
-    if (USER$Logged == FALSE) {
-      if (!is.null(input$Login)) {
-        if (input$Login > 0) {
-          username <- isolate(input$userName)
-          password <- isolate(input$passwd)
-          if (username %in% users$user & password == 'streams') { #users$pass
-            USER$Name <<- unlist(strsplit(username,"@"))[1] # or just username
-            USER$Logged <<- TRUE
-            USER$LoginPass <<- 1
-          }
-          USER$LoginPass <<- -1
-        }
-      }
-    }
-  })
-
+  output$loginbox <- renderUI(login)
   output$useBox <- renderValueBox({ valueBox(length(users$user), "Users", icon = icon("users")) })
   output$obsBox <- renderValueBox({ valueBox(paste0(0,"K"), "Observations", icon = icon("bar-chart"), color="yellow") })
   output$modBox <- renderValueBox({ valueBox(0, "Models run", icon = icon("cloud")) })
@@ -92,34 +71,36 @@ server <- function(input, output, session) {
   output$table <- renderDataTable({mda},
     options = list(paging = FALSE,searching=FALSE,ordering=FALSE),escape=FALSE,style="bootstrap",selection="none")
 
-  observe({
-    if (USER$Logged == TRUE) {
+  observeEvent(input$Login, {
+    if(!USER$Logged){ # not logged in, check if it passes
+      username = input$userName
+      password = input$passwd
+      if (username %in% users$user & password == 'streams') { #users$pass
+        USER$Name = unlist(strsplit(username,"@"))[1] # or just username
+        USER$Logged = TRUE
+      }else{
+        output$loginbox <- renderUI(loginfail)
+      }
+    }
+
+    if(USER$Logged){ # passed login
+      output$loginbox <- renderUI(loginpass)
       source("upload.R",local=TRUE)
       source("flag.R",local=TRUE)
       userstr <- span("Login successful as ",strong(USER$Name))
       logoutstr <- div(align="right",a(href="/","Log out"))
       loginpass <- box(title = "Logged in!",status="success",solidHeader=TRUE,userstr,logoutstr)
-      output$loginbox <- renderUI(loginpass)
       output$Upload <- renderMenu(
         menuItem("Upload", icon = icon("cloud-upload"),
           menuSubItem("Sensor data", tabName="upload"),
           menuSubItem("Drop samples")
       ))
-      # output$Up1 <- renderMenu()
-      # output$Up2 <- renderMenu()
-      # output$Cleaner <- renderMenu( menuItem("Cleaner", icon = icon("magic"), tabName = "clean",
-      #                                        badgeLabel = "coming soon", badgeColor = "yellow") )
       output$Visualizer <- renderMenu( menuItem("Vizualizer", tabName = "view", icon = icon("line-chart")) )
       output$Modeler <- renderMenu( menuItem("Modeler", tabName = "model", icon = icon("cubes")) )
       output$SOPs <- renderMenu( menuItem("SOPs", tabName = "sop", icon = icon("file-text-o")) )
       output$fileup <- renderUI( fileInput('file1', NULL,
                                            accept = c('text/csv','text/comma-separated-values','text/plain','.csv','application/octet-stream')) )
-    } else {
-      if(USER$LoginPass >= 0) {
-        output$loginbox <- renderUI(login)
-      } else {
-        output$loginbox <- renderUI(loginfail)
-      }
     }
   })
+
 }

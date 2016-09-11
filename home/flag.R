@@ -24,9 +24,9 @@ flagui = fluidRow(
         </ul>")
       )
     )),
-    conditionalPanel("input.finishtagging==0",
+    # conditionalPanel("input.finishtagging==0",
       fluidRow(column(width=12,
-        HTML(paste0("<h3>Tagging (optional) ","</h3>")), #,actionLink("skiptag","Skip/finish tagging")
+        HTML("<h3>Tagging</h3>"), #,actionLink("skiptag","Skip/finish tagging")
         actionButton("tag_new", "Tag selected", icon=icon("flag"),
           style="color:#fff; background-color: #666666; border-color: #fff"),
         actionButton("tag_erase", "Un-tag selected", icon=icon("flag-o"),
@@ -44,10 +44,10 @@ flagui = fluidRow(
       )),
       fluidRow(column(width=12,
         actionButton("finishtagging", "Finish tagging", style="color: #fff; background-color: #337ab7; border-color: #fff")
-      ))
-    ),
+      )),
+    # ),
 
-    conditionalPanel("input.finishtagging==1",
+    conditionalPanel("input.finishtagging>0",
       fluidRow(column(width=12,
         HTML("<h3>Flagging</h3>"),
         actionButton("flag_new", "Flag selected", icon=icon("flag"),
