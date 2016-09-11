@@ -155,7 +155,7 @@ observeEvent(input$tag_store,{
   if(any(storetags) & input$tag_name!=""){
     wtg = which(storetags & flags$d$t==4) # which tagged
     flags$d$f[wtg] = 3 # stored tag
-    taglist = list(ID=input$tag_name, variable=input$plot_brush$panelvar1, source=site$id, tags=flags$d$DateTimeUTC[wtg])
+    taglist = list(ID=input$tag_name, variable=input$plot_brush$panelvar1, source=site$id, by=USER$Name, tags=flags$d$DateTimeUTC[wtg])
     if(is.null(flags$t)){
       flags$t = list(taglist)
     }else{
@@ -170,9 +170,10 @@ observeEvent(input$tag_store,{
 observeEvent(input$na_rm,{
   navals = brushedPoints(df=flags$d, brush=input$plot_brush, allrows=TRUE)$selected_
   if(any(navals)){
+    var = input$plot_brush$panelvar1
     wna = which(navals)
     nas = unique(flags$d$value[wna]) #the unique values in the NA brush
-    flags$d$value[flags$d$value%in%nas] = NA # assign all those matching values as NA
+    flags$d$value[which(flags$d$value%in%nas & flags$d$variable == var)] = NA # assign all those matching values as NA
   }
 })
 
@@ -202,7 +203,7 @@ observeEvent(input$flag_store,{
   if(any(storeflags) & input$flag_name!=""){
     wflg = which(storeflags & flags$d$f==1)
     flags$d$f[wflg] = 2 # stored!
-    flaglist = list(ID=input$flag_name, variable=input$plot_brush$panelvar1, comment=input$flag_comment, source=site$id, flags=flags$d$DateTimeUTC[wflg])
+    flaglist = list(ID=input$flag_name, variable=input$plot_brush$panelvar1, comment=input$flag_comment, source=site$id, by=USER$Name, flags=flags$d$DateTimeUTC[wflg])
     if(is.null(flags$f)){
       flags$f = list(flaglist)
     }else{
