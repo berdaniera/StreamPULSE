@@ -10,19 +10,19 @@ ss = list_sites(c('gpp_estBest','dischdaily_calcDMean')) # sites with gpp estima
 #get_ts_metadata()$var_src
 v = c('dischdaily_calcDMean','gpp_estBest','er_estBest','K600_estBest')
 # get random sites
+si = ss
 length(si)
-si = ss[sample.int(length(ss),50)]
+si = ss[sample.int(length(ss),100)]
 # timeseries with those data
 dd = data_frame()
 for(s in si){
   ts = unitted::v(get_ts(v, s))
   ts = ts[apply(ts[,c("gpp","er","K600")],1,function(x) all(!is.na(x))),]
   if(nrow(ts) > 100) dd = rbind(dd, data.frame(site = s, ts))
+  print(which(si==s))
 }
 
 dim(dd)
-head(dd)
-
 save(dd, file="powstreamseg.Rda")
 
 # RELOAD DATA

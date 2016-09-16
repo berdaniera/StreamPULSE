@@ -9,7 +9,6 @@ cbPalette <- c("#333333", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
 dis = dd %>% group_by(site) %>% summarise(charge=mean(dischdaily))
 dis$group = as.numeric(cut(log(dis$charge), breaks=c(-Inf,quantile(log(dis$charge),seq(0.2,1,by=0.2)))))
 
-
 shinyServer(function(input, output) {
 
   moddat = reactive({
@@ -20,13 +19,18 @@ shinyServer(function(input, output) {
 
   model = reactive({
     err = ifelse(input$err == 0, 0.001, input$err)
-    similarsites = dis$site[which(dis$group==dis$group[dis$site==input$site])] # the groups
-    ddm = dd %>% filter(site%in%similarsites)
+    # find 10 closest streams
+    dcx = dis%>%filter(site==input$site) # discharge of our site
+    dis$group = -abs(dcx$charge-dis$charge) # grouping difference
+    similarsites = dis%>%top_n(10,group) # closest sites
+    # similarsites = dis$site[which(dis$group==dis$group[dis$site==input$site])] # the groups
+    ddm = dd %>% filter(site%in%similarsites$site)
     # aaa = input$all
     # if(aaa){ddm = dd}else{ddm = moddat()}
-    if(input$filt_gpp){ddm = ddm %>% filter(gpp > -1.5)}
-    if(input$filt_er){ddm = ddm %>% filter(er < 1.5)}
-    traindat = ddm %>% select(gpp,er,K600) %>% mutate_each(funs( delta=c(0,diff(.)) ))
+    if(input$filt_gpp){ddm = ddm %>% filter(gpp > 0)}
+    if(input$filt_er){ddm = ddm %>% filter(er < 0)}
+    traindat = ddm %>% select(gpp,er,K600)
+    if(input$delt){traindat = traindat %>% mutate_each(funs( delta=c(0,diff(.)) ))}
     mod = svm(traindat, type='one-classification', kernel='radial',
                 scale=TRUE, nu=err)
     mod
@@ -35,7 +39,8 @@ shinyServer(function(input, output) {
   data = reactive({
     dat = moddat()
     mod = model()
-    preddat = dat %>% select(gpp,er,K600) %>% mutate_each(funs( delta=c(0,diff(.)) ))
+    preddat = dat %>% select(gpp,er,K600)
+    if(input$delt){preddat = preddat %>% mutate_each(funs( delta=c(0,diff(.)) ))}
     flags = !predict(mod, preddat)
     dat$f = flags
     dat
