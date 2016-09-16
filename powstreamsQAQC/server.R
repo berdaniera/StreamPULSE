@@ -6,6 +6,10 @@ library(ggplot2)
 load("powstreamseg.Rda")
 cbPalette <- c("#333333", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
+dis = dd %>% group_by(site) %>% summarise(charge=mean(dischdaily))
+dis$group = as.numeric(cut(log(dis$charge), breaks=c(-Inf,quantile(log(dis$charge),seq(0.2,1,by=0.2)))))
+
+
 shinyServer(function(input, output) {
 
   moddat = reactive({
@@ -15,13 +19,15 @@ shinyServer(function(input, output) {
   })
 
   model = reactive({
-    aaa = input$all
     err = ifelse(input$err == 0, 0.001, input$err)
-    if(aaa){ddm = dd}else{ddm = moddat()}
+    similarsites = dis$site[which(dis$group==dis$group[dis$site==input$site])] # the groups
+    ddm = dd %>% filter(site%in%similarsites)
+    # aaa = input$all
+    # if(aaa){ddm = dd}else{ddm = moddat()}
     if(input$filt_gpp){ddm = ddm %>% filter(gpp > -1.5)}
-    if(input$filt_er){ddm = ddm %>% filter(er < 3)}
-    mod = svm(ddm %>% select(gpp,er,K600), # can use eval(parse(text=input$cond))
-                type='one-classification', kernel='radial',
+    if(input$filt_er){ddm = ddm %>% filter(er < 1.5)}
+    traindat = ddm %>% select(gpp,er,K600) %>% mutate_each(funs( delta=c(0,diff(.)) ))
+    mod = svm(traindat, type='one-classification', kernel='radial',
                 scale=TRUE, nu=err)
     mod
   })
@@ -29,7 +35,8 @@ shinyServer(function(input, output) {
   data = reactive({
     dat = moddat()
     mod = model()
-    flags = !predict(mod, dat %>% select(gpp,er,K600))
+    preddat = dat %>% select(gpp,er,K600) %>% mutate_each(funs( delta=c(0,diff(.)) ))
+    flags = !predict(mod, preddat)
     dat$f = flags
     dat
   })
@@ -40,7 +47,7 @@ shinyServer(function(input, output) {
   output$plot = renderPlot({
     din = data() %>% gather(variable, value, -DateTime, -f)
     ggplot(din, aes(DateTime, value, col=f)) +
-      geom_point(shape=20,size=din$f*6+1) +
+      geom_point(shape=20,size=din$f*3+1) +
       facet_grid(variable~.,scales='free_y') +
       theme(legend.position='none') +
       scale_colour_manual(values=cbPalette)

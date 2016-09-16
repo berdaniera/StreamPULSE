@@ -6,12 +6,13 @@ library(readr)
 library(ggplot2)
 cbPalette = c("#333333", "#E69F00", "#337ab7", "#56B4E9", "#739E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 
-shinyServer(function(input, output, session) {
+shinyServer(function(input, output, session, data=NULL) {
 
 ######## DATA CONTROLS
-  flags = reactiveValues(d=NULL,f=NULL) # placeholder for model flagged data
+  flags = reactiveValues(d=NULL,f=NULL)  # placeholder for model flagged data
   # d is the data with a flag column
   # f is the flag list
+  dat = reactiveValues(up=NULL)  # placeholder for data
 
   # Load new data
   dataup = reactive({
@@ -21,16 +22,33 @@ shinyServer(function(input, output, session) {
       return(NULL)
     read_csv(inFile$datapath)
   })
-  # datain = read_csv("/home/aaron/Documents/StreamPULSE/Joanna/W26_DO_lvl.csv")
   # If data is loaded, update variable list
   observe({
     if(!is.null(dataup())){
-      dat = dataup()
-      cvars = colnames(dat)[!colnames(dat)%in%c("DateTime","flags")]
+      dat$up = dataup()
+      cvars = colnames(dat$up)[!colnames(dat$up)%in%c("DateTime","flags")]
       updateSelectizeInput(session, "vari", choices=cvars, server=TRUE)
-      output$fitbutton = renderUI(actionButton("fitButton", "Fit model"))
+      output$fitbutton = renderUI(actionButton("fitButton", "Fit it!"))
     }
   })
+
+  if(!is.null(data) & "DateTime"%in%colnames(data) & ncol(data)>1){
+    if(colnames(data)[1]!="DateTime"){
+      ccn = colnames(data)
+      data = data %>% select_(.dots=c("DateTime",ccn[-grep("DateTimeUTC",ccn)]))
+    }
+    dat$up = data
+    cvars = colnames(dat$up)[!colnames(dat$up)%in%c("DateTime","flags")]
+    updateSelectizeInput(session, "vari", choices=cvars, server=TRUE)
+    output$fitbutton = renderUI(actionButton("fitButton", "Fit it!"))
+  }else{
+    data = NULL
+    # display the file upload interface
+    output$fileup = renderUI(HTML(paste0(
+      "<i>Data requirements:</i> One column named 'DateTime' with an R-readable date or time format and at least one data column.",
+      fileInput('file1', '1. Upload data to test for anomalies.', accept=c('text/csv','text/comma-separated-values,text/plain','.csv'))
+    )))
+  }
 
 ######## MODEL CONTROLS
   # If the model directory exists, update model list
@@ -43,12 +61,11 @@ shinyServer(function(input, output, session) {
   }
   # Fit the model
   observeEvent(input$fitButton,{
-    if( (input$traindat=="old"&input$predat%in%c("No data found...","Choose a dataset...")) |
-      (input$traindat=="new"&is.null(input$vari)) ){
+    if( (input$traindat=="old" & input$predat%in%c("No data found...","Choose a dataset...")) |
+      (input$traindat=="new" & is.null(input$vari)) ){
       # If nothing is selected in the open tab, throw an error
       output$fiterr = renderUI(HTML("<font color='red'><i>Please choose training variables or a previously-trained dataset.</i></font>"))
     }else{
-      dat = dataup()
       output$fiterr = renderUI(HTML("<font color='green'><i>Model fitting...</i></font>"))
       if(input$traindat=="old"){ # If a pre-existing model is selected, load it
         load(paste0("previously_flagged_data/",input$predat,".Rda")) # load existing model objects
@@ -59,28 +76,35 @@ shinyServer(function(input, output, session) {
       }else{ # Else, fit a new model
         mcols = input$vari
         if(input$filt==""){
-          traindat = dat %>% select_(.dots=mcols)
+          traindat = dat$up %>% select_(.dots=mcols)
         }else{
-          traindat = dat %>% filter_(.dots=input$filt) %>% select_(.dots=mcols)
+          traindat = dat$up %>% filter_(.dots=input$filt) %>% select_(.dots=mcols)
         }
+        if(input$delt) traindat = traindat %>% mutate_each(funs( delta=c(0,diff(.)) ))
       }
       # check if all data columns in model are in data
-      if(all(mcols%in%colnames(dat))){
+      if(all(mcols%in%colnames(dat$up))){
         mod = svm(traindat, nu=input$nu, scale=TRUE, type='one-classification', kernel='radial')
         # predict flags for uploaded data
-        dat$f = 0
-        dat$f[!predict( mod, dat %>% select_(.dots=mcols) )] = 1 # flagged
-        d = dat %>% select_(.dots=c("DateTime",mcols,"f")) %>% gather(variable, value, -DateTime, -f)
+        dat$up$f = 0
+        preddat = dat$up %>% select_(.dots=mcols)
+        if(input$delt) preddat = preddat %>% mutate_each(funs( delta=c(0,diff(.)) ))
+        dat$up$f[!predict(mod, preddat)] = 1 # flagged
+        dat$f = factor(dat$f,levels=0:2)
+        d = dat$up %>% select_(.dots=c("DateTime",mcols,"f")) %>% gather(variable, value, -DateTime, -f)
         d$variable = factor(d$variable, levels=unique(d$variable))
         flags$d = d
         output$fiterr = renderUI(HTML(""))
       }else{
-        output$fiterr = renderUI(HTML(paste("<font color='red'>Model columns <i>",mcols[which(!mcols%in%colnames(dat))],"</i> not in loaded data.<br>Please check your data and reupload.</font>")))
+        output$fiterr = renderUI(HTML(paste("<font color='red'>Model columns <i>",mcols[which(!mcols%in%colnames(dat$up))],"</i> not in loaded data.<br>Please check your data and reupload.</font>")))
       }
     }
   })
 
 ######## PLOT CONTROLS
+  # Function for getting rows that are in brush
+  brushedLogic = function(df,pb) c(df[pb$mapping$panelvar1]==pb$panelvar1 & df[pb$mapping$x]>pb$xmin & df[pb$mapping$x]<pb$xmax)
+
   ranges = reactiveValues(x=NULL)
   observeEvent(input$plot_dblclick,{
     brush = input$plot_brush
@@ -94,9 +118,9 @@ shinyServer(function(input, output, session) {
   observe({ # draw plot
     if(!is.null(flags$d)){
       output$flagplot = renderPlot({
-        ptsz = rep(0.5,nrow(flags$d))
+        ptsz = rep(1,nrow(flags$d))
         ptsz[flags$d$f > 0] = 4
-        ggplot(flags$d, aes(DateTime, value, col=factor(f))) +
+        ggplot(flags$d, aes(DateTime, value, col=f)) +
           geom_point(shape=20,size=ptsz) +
           facet_grid(variable~.,scales='free_y') +
           theme(legend.position='none') +
@@ -107,24 +131,33 @@ shinyServer(function(input, output, session) {
   })
 
 ######## FLAG CONTROLS
+  # # REMOVE NA VALUES
+  observeEvent(input$na_rm,{
+    navals = brushedLogic(flags$d, input$plot_brush)
+    if(any(navals)){
+      var = input$plot_brush$panelvar1
+      nas = unique(flags$d$value[navals]) #the unique values in the NA brush
+      flags$d$value[which(flags$d$value %in% nas & flags$d$variable == var)] = NA # assign all those matching values as NA
+    }
+  })
   # # ADD A NEW FLAG
   observeEvent(input$flag_new,{
-    newflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+    newflags = brushedLogic(flags$d, input$plot_brush)
     if(any(newflags)) flags$d$f[newflags] = 1
   })
   # # ERASE A FLAG
   observeEvent(input$flag_erase,{
-    eraseflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+    eraseflags = brushedLogic(flags$d, input$plot_brush)
     if(any(eraseflags)) flags$d$f[eraseflags] = 0
   })
-  # CLEAR ALL UNSTORED FLAGS
+  # # CLEAR ALL UNSTORED FLAGS
   observeEvent(input$flag_clear,{
     flags$d$f[flags$d$f==1] = 0
     ranges$x = NULL
   })
-  # STORE FLAGS
+  # # STORE FLAGS
   observeEvent(input$flag_store,{
-    storeflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
+    storeflags = brushedLogic(flags$d, input$plot_brush)
     if(any(storeflags) & !is.null(input$flag_name)){
       flags$d$f[which(storeflags&flags$d$f==1)] = 2 # stored!
       flaglist = list(ID=input$flag_name, comment=input$flag_comment, flags=flags$d$DateTime[storeflags])
@@ -139,7 +172,7 @@ shinyServer(function(input, output, session) {
       output$loadtext = renderText("Please select flagged points and/or enter a flag name/ID")
     }
   })
-  # SAVE FLAGS
+  # # SAVE FLAGS
   observeEvent(input$flag_save,{
     # need DF with model fit columns and rows that are not in flags
     # and a list of the unique flag names
@@ -164,14 +197,6 @@ shinyServer(function(input, output, session) {
     write_csv(flaggedmeta, filename2)
     output$loadtext = renderText(paste0("Saved ",filename1," and ",filename2," to current working directory."))
   })
-  # output$flag_download = downloadHandler(
-  #   filename = function(){ paste0(sub("(.*)\\..*", "\\1", input$file1$name),"-",Sys.Date(),".csv") },
-  #   content = function(file){
-  #     flagIDs = do.call("rbind", lapply(flags$f, function(x) data_frame(DateTime=x$flags,Flag=x$ID)))
-  #     flaggeddat = left_join(dataup(),flagIDs, by="DateTime")
-  #     write_csv(flaggeddat, file)
-  #   }
-  # )
 
 ######### EXAMPLE CODE
   observeEvent(input$egdata,{ # generate new random eg data
@@ -191,7 +216,5 @@ shinyServer(function(input, output, session) {
       }
       legend("topright",c("Training data","Testing - Good","Testing - Anomaly"),pch=21,pt.bg=c("#ffffff","#009E73","#E69F00"),pt.cex=c(1,1.1,1.1))
     })
-
   })
-
 })

@@ -14,9 +14,9 @@ getHobodat = function(ff){
 }
 
 getCSdat = function(ff){
-  tzoff = -4 # EST
-  if(grepl("WI_", ff)) tzoff = -5
-  if(grepl("AZ_|WY_", ff)) tzoff = -6
+  tzoff = 4 # EST
+  if(grepl("WI_", ff)) tzoff = 5
+  if(grepl("AZ_|WY_", ff)) tzoff = 6
   hh = read_csv(ff, skip=1, n_max=2)
   f1 = read_csv(ff, skip=4, col_names=colnames(hh),col_types=cols(TIMESTAMP = "c"))
   f1$DateTimeUTC = parse_datetime(paste(f1$TIMESTAMP,tzoff),"%m/%d/%Y %T %Z")

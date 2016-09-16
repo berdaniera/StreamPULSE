@@ -131,7 +131,6 @@ observe({ # draw plot
   if(!is.null(flags$d)){
     output$flagplot = renderPlot({
       flags$d$t[flags$d$f != 0] = 4
-#      pltdat = flags$d %>% filter(!is.na(value))
       ggplot(flags$d, aes(DateTimeUTC, value, col=f)) +
         geom_point(shape=20,size=flags$d$t) +
         facet_grid(variable~.,scales='free_y') +
@@ -269,6 +268,7 @@ observeEvent(input$flag_save,{
   write_csv(savealldat, ffilePath)
   drop_upload(ffilePath, dest="SPreadyforupload", dtoken=dto)
 
+  ranges$x = NULL
   output$loadtext = renderText(paste0("The data were successfully saved. Thank you!"))
   updateTextInput(session, "flag_comments", value="")
 })
