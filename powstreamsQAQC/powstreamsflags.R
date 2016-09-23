@@ -17,7 +17,7 @@ getdtwin <- function(x, mins){
 
 getccf <- function(tsdf, xvar, yvar, window, plt=TRUE){
   # Check for differences in time windows - need to re-window for cross correlation
-  # NOTE: Slow!
+  # NOTE: Slow! Also, it might be overkill...
   if( (length(which(diff(tsdf$DateTime)==window))/nrow(tsdf) < 0.9) ){ # 90% of time windows are 15 minutes
   #if(all( diff(ts$DateTime) != 0 )){ # all time windows are 15 minutes - more restrictive
     windows <- getdtwin(tsdf$DateTime, window)
