@@ -57,3 +57,11 @@ for(s in ss){
 }
 close(pb)
 ####################################3
+
+png("maxcorplt.png",width=600,height=600)
+plot(maxlags,main="Lag with maximum correlation",xlab="Lag (hours), temperature following light",ylab="Maximum correlation / Density",bty="n", las=1)
+abline(h=0,col="grey")
+abline(v=0,col="grey")
+hst <- hist(maxlags$maxlag,plot=F,breaks="fd")
+lines(hst$density~hst$mids,type="s")
+dev.off()
