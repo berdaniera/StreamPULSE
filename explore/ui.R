@@ -1,7 +1,7 @@
 library(shiny)
 library(ggplot2)
 load("sites.Rda")
-
+usgssites = as.character(sample(usgsmeta$site_nm))
 # Define UI for miles per gallon application
 shinyUI(fluidPage(
   fluidRow(
@@ -33,7 +33,7 @@ shinyUI(fluidPage(
   column(width=6,
     wellPanel(
       HTML("<font size ='4'>Metabolism models</font>  (Choose sites to view)"),
-      selectizeInput('powsite', '', choices=as.character(powsites), multiple=TRUE, selected=as.character(powsites[1:5]))
+      selectizeInput('powsite', '', choices=usgssites, multiple=TRUE, selected=usgssites[1:5])
     ),
     fluidRow(
       HTML("<i><center>95% kernel density of daily metabolism estimates</center></i>"),

@@ -3,9 +3,9 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(MASS)
-
 load("data.Rda")
 load("powdata.Rda")
+load("sites.Rda")
 colnames(data) = c("Date","site","DOconcentration-mgL","Temperature-C","AbsolutePressure-kPa")
 
 # Define server logic required to plot various variables against mpg
@@ -41,13 +41,14 @@ shinyServer(function(input, output, session) {
 
   observe({
     output$powplot = renderPlot({
-      insites = input$powsite
+      insites = usgsmeta$site_no[which(usgsmeta$site_nm %in% input$powsite)]
       # for each selected site, add lines
       par(mar=c(8,8,0,0))
       plot(0,0,type="n",xlim=c(0,15),cex.axis=1,cex.lab=1.5,ylim=c(-15,0),bty="n",xlab=expression('GPP gO'[2]*' m'^{-2}*' d'^{-1}),ylab=expression('ER gO'[2]*' m'^{-2}*' d'^{-1}),las=1)
       for(s in insites){
         X = powdata %>% filter(site==s & gpp>0 & er<0)
-        z = kde2d(X$gpp, X$er, lims=c(0,quantile(X$gpp,0.95),quantile(X$er,0.05),0), n=100)
+        print(summary(X))
+        z = kde2d(X$gpp, X$er, lims=c(0,quantile(X$gpp,0.95,na.rm=T),quantile(X$er,0.05,na.rm=T),0), n=100)
         contour(z, drawlabels=FALSE, levels=quantile(as.numeric(z$z),0.9), col="#000000", add=TRUE,lwd=2)
       }
       abline(0,-1,lty=2)
