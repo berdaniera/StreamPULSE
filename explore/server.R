@@ -58,7 +58,7 @@ shinyServer(function(input, output, session) {
   })
 
   observeEvent(input$contact,{
-    cat(input$email,sep="\n",file=paste0("names",Sys.Date(),".txt"),append=TRUE)
+    cat(input$email,sep="\n",file="names.txt",append=TRUE)
     updateTextInput(session,"email","","")
   })
 
