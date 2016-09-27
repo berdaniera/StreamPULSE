@@ -3,3 +3,4 @@
 *.db
 *.rds
 *.httr-oauth
+local.R
