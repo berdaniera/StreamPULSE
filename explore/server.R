@@ -6,7 +6,7 @@ library(MASS)
 load("data.Rda")
 load("powdata.Rda")
 load("sites.Rda")
-colnames(data) = c("Date","site","DOconcentration-mgL","Temperature-C","AbsolutePressure-kPa")
+colnames(data) = c("Date","site","Water level (cm)","DO (% sat)","Temperature (C)")
 sitenms = sapply(strsplit(usgsmeta$site_nm," "),function(x) paste(tail(x,2),collapse=" "))
 
 # Define server logic required to plot various variables against mpg
