@@ -3,7 +3,7 @@ library(lubridate)
 library(powstreams)
 library(sbtools)
 library(tibble)
-login_sb('abb30@duke.edu')
+login_sb()
 
 #######################################3
 getdtwin <- function(x, mins){
@@ -32,36 +32,61 @@ getccf <- function(tsdf, xvar, yvar, window, plt=TRUE){
   ccf(xv, yv, na.action=na.pass, plot=plt, lag.max=12*60/window, type="correlation") # maximum lag is 12 hours either direction
 }
 
-getmaxlag <- function(cc, window){
+getcv <- function(ts){
+  # Average daily coefficient of variation in discharge for hydropeaking
+  # see, e.g., Dibble et al. 2015 EcolAppl
+  ts <- as_tibble(ts)
+  cv <- ts %>% group_by(day=date(ts$DateTime)) %>%
+    summarise(cv = sd(disch)/mean(disch)) %>%
+    ungroup() %>% summarise(mean(cv,na.rm=T))
+  as.numeric(cv)
+}
+
+getmetrics <- function(cc, window){
   data.frame(maxlag=cc$lag[which.max(cc$acf)]/(60/window), # lag with highest correlation
-    maxcor=max(cc$acf))
+    maxcor=max(cc$acf),
+    disch=exp(mean(log(ts$disch),na.rm=T)),
+    cvdisch=getcv(ts),
+    negdisch=length(which(ts$disch<0))/nrow(ts))
 }
 
 v <- c('doobs_nwis','disch_nwis','wtr_nwis','par_calcLat') # the variables
 ss <- list_sites(v) # sites with the variables
 
-maxlags <- data.frame(maxlag=NULL,maxcor=NULL)
+output <- data.frame(maxlag=NULL,maxcor=NULL,disch=NULL,cvdisch=NULL,negdisch=NULL)
 
 pb <- txtProgressBar(max=length(ss), initial=1, style=3)
 for(s in ss){
   # get time series
   ts <- unitted::v(get_ts(v, s))
   # compare any variables
+  # HERE, change xvar to "doobs" to look at correlations with DO
   cc <- getccf(tsdf=ts, xvar="wtr", yvar="par", window=15, plt=T)
-  # get time lags
-  # + is x following y
-  # - is x leading y
-  lag <- getmaxlag(cc, window=15)
-  maxlags <- rbind(maxlags,lag)
+  # get time lags and other measures
+  # FOR LAGS: (+) is x following y, (-) is x leading y
+  met <- getmetrics(cc, window=15)
+  output <- rbind(output,met)
   setTxtProgressBar(pb, which(ss==s))
 }
 close(pb)
 ####################################3
 
-png("maxcorplt.png",width=600,height=600)
-plot(maxlags,main=paste("Lag with maximum correlation, n =",nrow(maxlags)),xlab="Lag (hours), temperature following light",ylab="Maximum correlation / Density",bty="n", las=1)
+#png("maxcorplt.png",width=600,height=600)
+# PLOT 1
+plot(output$maxlag,output$maxcor,
+  main=paste("Lag with maximum correlation, n =",nrow(output)),
+  xlab="Lag (hours), temperature following light",
+  ylab="Maximum correlation / Density",
+  bty="n", las=1, cex=log(output$disch)/5)
 abline(h=0,col="grey")
 abline(v=0,col="grey")
-hst <- hist(maxlags$maxlag,plot=F,breaks="fd")
+hst <- hist(output$maxlag,plot=F,breaks="fd")
 lines(hst$density~hst$mids,type="s")
-dev.off()
+#dev.off()
+
+# PLOT 2
+plot(output$maxcor,output$cvdisch,
+  xlab="Maximum correlation bw temperature and light",
+  ylab="Average daily CV in discharge, mean( sd(x_t)/mean(x_t) )",
+  main="Discharge CV ~ hydropeaking with high CV",
+  ylim=c(0,0.5), bty="n", cex=log(output$disch)/5)
