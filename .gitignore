@@ -4,3 +4,4 @@
 *.rds
 *.httr-oauth
 local.R
+stream_metab.yaml
