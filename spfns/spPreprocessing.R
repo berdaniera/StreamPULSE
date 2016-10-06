@@ -3,7 +3,7 @@
 # aaron.berdanier@gmail.com
 # Last updated: 2016-10-06
 
-# set working directory to find your data files
+# Set working directory to find your data files
 # This will be a file path. It could be something like: wd <- "C:/Users/username/Desktop/StreampulseUpload/"
 wd <- "."
 setwd(wd)
@@ -14,7 +14,7 @@ setwd(wd)
 #   Data from HOBO loggers include DO, Light, Water Pressure/temp and Air Pressure/temp
 
 # load functions
-source("spfns.R")
+source("spFns.R")
 
 
 ################
