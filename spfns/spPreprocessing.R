@@ -7,15 +7,13 @@
 # This will be a file path. It could be something like: wd <- "C:/Users/username/Desktop/StreampulseUpload/"
 wd <- "."
 setwd(wd)
-# This directory should contain the files that you wish to upload and the spfns.R file
+# This directory should contain the files that you wish to upload **and** the spfns.R file
 # File formatting note (see SOP for more details):
 #   Files should be as `.dat` from CR1000 loggers, `.csv` from HOBO loggers, or `.csv` from other systems
 #   File names should match `XX_SiteName_YYYYMMDD_ZZ` where XX is the site code and ZZ is the data logger code
-#   Data from HOBO loggers will include DO, Light, Water Pressure/temp and Air Pressure/temp
+#   Data from HOBO loggers include DO, Light, Water Pressure/temp and Air Pressure/temp
 
-# load required packages
-library(dplyr)
-library(readr)
+# load functions
 source("spfns.R")
 
 
@@ -28,8 +26,8 @@ sitedate <- "NC_Eno_20160922"
 
 # We need timezone information to correctly convert the Campbell Scientific TIMESTAMPs
 # IMPORTANT: CR1000 dataloggers sync to the download computer
-#   If the clock on your download computer adjusts for daylight savings time (it may or may not),
-#   then the `dst` option *must* be set to TRUE (this is the default setting)
+#   If the clock on your download computer adjusts for daylight savings time (it probably does, but it may not...),
+#   then the `dst` option **must** be set to TRUE (this is the default setting)
 # For lat and lng, accuracy within a degree should be fine
 #   e.g., in NC:  lat <- 36; lng <- (-78)
 lat <- 36
