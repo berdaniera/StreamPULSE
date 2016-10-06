@@ -1,3 +1,5 @@
+### FUNCTIONS FOR PRE-PROCESSING STREAMPULSE DATA ###
+
 ### DATA CHECKING
 check_ts = function(x, samp.freq=NULL){
   # x is a vector of timestamps
@@ -49,26 +51,24 @@ read_hobo = function(ff){
   #if("AbsPreskPa" %in% colnames(f1)) f1 = f1 %>% mutate(AbsPresPa = AbsPreskPa*1000) %>% select(-AbsPreskPa)
   f1 %>% filter(apply(f1,1,function(x) all(!is.na(x)))) %>% select(-N)
 }
-# need to add conversion to air.kpa or water.kpa and air.temp or water.temp
+# need to add column name conversion to air.kpa or water.kpa and air.temp or water.temp
 
 # Read Campbell Scientific data .dat
-read_csci = function(ff){
-  tzoff = 4 # EST
-  if(grepl("WI_", ff)) tzoff = 5
-  if(grepl("AZ_|WY_", ff)) tzoff = 6
+read_csci = function(ff, gmt.off){
+  if(is.null(gmt.off)) stop("Time zone offset not defined. \n Please include it and try again.")
+  tzoff = -gmt.off
   hh = read_csv(ff, skip=1, n_max=2)
   f1 = read_csv(ff, skip=4, col_names=colnames(hh),col_types=cols(TIMESTAMP = "c"))
-  f1$DateTimeUTC = parse_datetime(paste(f1$TIMESTAMP,tzoff),"%m/%d/%Y %T %Z")
+  f1$DateTimeUTC = parse_datetime(paste(f1$TIMESTAMP,tzoff),"%F %T %Z")
   ccn = colnames(f1)
   f1 %>% select_(.dots=c("DateTimeUTC",ccn[-grep("DateTimeUTC",ccn)])) %>% rename(LocalDateTime = TIMESTAMP)
 }
-# NEED TO FIX TIME ZONES
 
 # Load streampulse files
-load_file = function(ff){
+load_file = function(ff, gmt.off){
   datalogger = sub("(.*_)(.*)\\..*", "\\2", ff)
   if(datalogger == "CS"){ # cs data logger
-    read_csci(ff)
+    read_csci(ff, gmt.off)
   }else if(grepl("H",datalogger)){ # hobo data logger
     read_hobo(ff)
   }else{ # other data - must have just one header row
@@ -77,13 +77,27 @@ load_file = function(ff){
 }
 
 # Read and munge files for a site and date
-sp_in = function(site.date){
+sp_in = function(site.date, gmt.off=NULL){
   ff = grep(site.date,list.files(),value=TRUE)
   x = sapply(ff,function(f){
-    xx = load_file(f)
+    xx = load_file(f, gmt.off)
     wash_ts(xx, dup.action="average", samp.freq="15M")
   })
   fold_ts(x)
+}
+
+get_gmtoff = function(lat, lng, site.date, dst=TRUE){
+  obs.date = sub("(.*_)(.*)", "\\2", site.date)
+  ts = as.numeric(as.POSIXct(obs.date,format="%Y%m%d",origin="1970-01-01"))
+  ur = paste0("https://maps.googleapis.com/maps/api/timezone/json?timestamp=",ts,"&location=",lat,",",lng)
+  res = httr::GET(ur)
+  if(httr::status_code(res)!=200) stop("Error with API. \n You'll need to try again or get the offset somewhere else.")
+  out = httr::content(res)
+  offs = out$rawOffset
+  if(dst) offs = offs+out$dstOffset
+  offs = offs/3600
+  cat("Google got the timezone offset for you:",offs,"hours\n")
+  offs
 }
 
 
@@ -164,7 +178,11 @@ fold_ts = function(...){
   if(!all(sapply(ll,function(x) colnames(x)[1]=="DateTime"))){
     print("Please clean all data sets before running merge_ts()")
   }
-  Reduce(function(df1,df2) full_join(df1,df2,by="DateTime"), ll)
+  if(length(ll) > 1){
+    Reduce(function(df1,df2) full_join(df1,df2,by="DateTime"), ll)
+  }else{
+    ll[[1]]
+  }
 }
 
 
@@ -194,85 +212,3 @@ mV2fdom = function(mV, fdom.offset){
 
 # mV to CO2 (ppm)
 # mV2CO2 = function(){}
-
-
-
-
-
-
-
-# QUESTIONS FOR DATA MEETING
-# Do we retain the samples or the averages?
-# Units - function documentation that Aaron does - what units go in...
-# Convo about comfort with R
-# Overview of date formats
-
-# spdata.r
-
-### StreamPULSE data preprocessing
-# Aaron Berdanier
-# aaron.berdanier@gmail.com
-# Last updated: 2016-10-06
-
-# set working directory to find your data files
-setwd(".")
-
-# load required packages
-library(dplyr)
-library(readr)
-source("spfns.R")
-
-
-
-################
-### 0. SETUP
-#
-
-# enter standards and date to fit - Does everyone have different standards?
-# date formatting - Will everyone have different date formats?
-
-# File formatting note:
-# Files should be as `.dat` from CR1000 loggers, `.csv` from HOBO loggers, or `.csv` from other systems
-# File names should match `XX_SiteName_YYYYMMDD_ZZ` where XX is the site code and ZZ is the data logger code (see SOP)
-# Data from HOBO loggers will include DO, Light, Water Pressure/temp and Air Pressure/temp
-
-################
-### 1. LOAD DATA
-# `sp_in()` loads and munges all data files from the defined site and download date
-# The only parameter is `site.date`, which is identified from `XX_SiteName_YYYYMMDD`
-data <- sp_in("NC_Eno_20160804")
-data
-
-################
-### 2. CONVERSIONS where necessary
-depth.offset <- 0 # The distance (in m) from the bed to the water pressure sensor
-fdom.offset <- 0 # The measured calibration offset for the fDOM sensor
-turb.offset <- 0 # The measured calibration offset forthe turbidity sensor
-
-
-# transformations - could automate with conditional statements
-# Pressure to level - need atmos pressure?
-# mV to turbidity
-# mV to fDOM
-# mV to CO2
-# Light - comes out as lumens
-
-# HOBOS: DO, Level, Light, AirPres/temp
-
-# HAVE AN OPTION TO CONVERT IF YOU DIDN"T DO IT IN THE CAMPBELL CODE
-# NEED TO STANDARDIZE UNITS
-
-
-# 4. select columns and save
-data %>% select(DateTime,pH,DOconcmgL,AbsPreskPa)
-write_csv(data,"siteid_location_fdate.csv")
-# wrapped in an ouput function
-
-
-# 1. Getting data into the right format
- # - R script
-# 2. Data cleaning and QAQC
- # - web interface
-
-# 3. Upload onto CUAHSI (us) - we've worked out the format already
- # - Dropbox to web interface
