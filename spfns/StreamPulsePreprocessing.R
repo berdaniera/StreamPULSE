@@ -4,7 +4,7 @@
 # Last updated: 2016-10-06
 
 # set working directory to find your data files
-# This will be a file path. It could be something like: wd <- "C:\Users\username\Desktop\StreampulseUpload\"
+# This will be a file path. It could be something like: wd <- "C:/Users/username/Desktop/StreampulseUpload/"
 wd <- "."
 setwd(wd)
 # This directory should contain the files that you wish to upload and the spfns.R file
