@@ -85,12 +85,18 @@ load_file = function(f, gmtoff){
 sp_in = function(sitedate, gmtoff=NULL){
   ff = grep(paste0(sitedate,"_"), list.files(), value=TRUE) # only get files that are from dataloggers
   if(length(ff)==0) stop("No files found matching that site-date combination...")
-  x = sapply(ff,function(f){
-    xx = load_file(f, gmtoff)
+  if(length(ff)==1){
+    xx = load_file(ff, gmtoff)
     wash_ts(xx, dup_action="average", samp_freq="15M")
-  })
-  fold_ts(x)
+  }else{
+    x = lapply(ff,function(f){
+      xx = load_file(f, gmtoff)
+      wash_ts(xx, dup_action="average", samp_freq="15M")
+    })
+    fold_ts(x)
+  }
 }
+
 
 get_gmtoff = function(lat, lng, sitedate, dst=TRUE){
   obs_date = sub("(.*_)(.*)", "\\2", sitedate)
@@ -170,11 +176,11 @@ wash_ts = function(x, dup_action=c("average","drop"), samp_freq=NULL, dt_colname
     }else if(dup_action=="drop"){
       x = slice(x, match(DateTime, unique(DateTime)))
     }else{
-      print("Duplicates found but no action taken.")
+      cat("Duplicates found but no action taken.\n")
     }
   }
 
-  print("Your data are cleaned.")
+  cat("Your data are cleaned.\n")
   x
 }
 
@@ -192,16 +198,16 @@ fold_ts = function(...){
 # Pressure (kPa) to water depth (m)
 kPa2depth = function(df, depth_offset, water_kPa=NULL, air_kPa=NULL, air_temp=NULL){
   # If not defined, get the parameters from the dataframe (df)
-  if(is.null(water_kPa)) water_kPa = df[,"water_kPa"]
-  if(is.null(air_kPa)) air_kPa = df[,"air_kPa"]
-  if(is.null(air_temp)) air_temp = df[,"air_temp"]
+  if(is.null(water_kPa)) water_kPa = df$water_kPa
+  if(is.null(air_kPa)) air_kPa = df$air_kPa
+  if(is.null(air_temp)) air_temp = df$air_temp
   dkpa = water_kPa - air_kPa # g/(m*s^2)
   p = (999.83952 + 16.945176*air_temp -
       7.9870401e-03*air_temp^2 - 46.170461e-06*air_temp^3 +
       105.56302e-09*air_temp^4 - 280.54253e-12*air_temp^5)/
       (1+16.879850e-03*air_temp) # kg/m^3
   g = 9.80655 # m/s^2
-  (depth_offset + dkpa*1000/(p*g)) # m
+  depth_offset + dkpa*1000/(p*g) # m
 }
 
 # mV from Cyclops 7 to turbidity (NTU)
@@ -218,6 +224,15 @@ mV2fdom = function(mV, fdom_offset){
 
 # mV to CO2 (ppm)
 # mV2CO2 = function(){}
+
+
+### DATA DOWNLOAD
+save_SPcsv = function(getvars){
+  dataoutput = data %>% select_(.dots=c("DateTime",getvars))
+  write_csv(dataoutput, paste0(sitedate,".csv"))
+  cat(paste0("The merged data were saved as ",sitedate,".csv\n"))
+}
+
 
 
 # NOTES FOR AARON:

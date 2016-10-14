@@ -1,33 +1,34 @@
 ### StreamPULSE data preprocessing
 # Aaron Berdanier
 # aaron.berdanier@gmail.com
-# Last updated: 2016-10-06
+# Last updated: 2016-10-14
 
 # Set working directory to find your data files
 # This will be a file path. It could be something like: wd <- "C:/Users/username/Desktop/StreampulseUpload/"
-wd <- "."
+wd <- "/home/aaron/Desktop/SP/"
 setwd(wd)
-# This directory should contain the files that you wish to upload **and** the spfns.R file
-# File formatting note (see SOP for more details):
-#   Files should be as `.dat` from CR1000 loggers, `.csv` from HOBO loggers, or `.csv` from other systems
-#   File names should match `XX_SiteName_YYYYMMDD_ZZ` where XX is the site code and ZZ is the data logger code
-#   Data from HOBO loggers include DO, Light, Water Pressure/temp and Air Pressure/temp
+# This directory should contain the datalogger files that you wish to upload **and** the spfns.R file
+# FOR EXAMPLE, you might have five files in this folder:
+# - NC_Eno_20161006_CS.dat - the campbell scientific CR1000 file
+# - NC_Eno_20161006_HA.csv - the hobo air pressure file
+# - NC_Eno_20161006_HD.csv - the hobo oxygen sensor file
+# - NC_Eno_20161006_HW.csv - the hobo water pressure file
+# - spFns.R
 
 # load functions
-source("spFns.R")
-
+source("/home/aaron/StreamPULSE/spfns/spFns.R")
 
 ################
 ### 1. LOAD DATA
 # `sp_in()` loads and munges all data files from the defined site and download date
 # It needs `sitedate` (as `REGIONID_SITEID_YYYYMMDD`) and `gmt.off`
 
-sitedate <- "NC_Eno_20160922"
+sitedate <- "NC_MudTrib_20161006"
 
 # We need timezone information to correctly convert the Campbell Scientific TIMESTAMPs
-# IMPORTANT: CR1000 dataloggers sync to the download computer
-#   If the clock on your download computer adjusts for daylight savings time (it probably does, but it may not...),
-#   then the `dst` option **must** be set to TRUE (this is the default setting)
+# IMPORTANT: CR1000 dataloggers sync the clock to the download computer
+#   If the clock on your download computer adjusts for daylight savings time
+#    then the `dst` option **must** be set to TRUE (this is the default setting).
 # For lat and lng, accuracy within a degree should be fine
 #   e.g., in NC:  lat <- 36; lng <- (-78)
 lat <- 36
@@ -62,8 +63,13 @@ data$fDOM <- mV2fdom(data$fDOM, fdom_offset)
 
 ################
 # 3. SELECT EXPORT COLUMNS AND SAVE
-# In the select() function, define the data columns that you'd like to export
-# These are the data that you will upload onto StreamPULSE
-dataoutput <- data %>% select(DateTime,pH,DOconcmgL,AbsPreskPa)
-write_csv(dataoutput, paste0(sitedate,".csv"))
+# View the columns in the data -- these are your options!
+colnames(data)
+
+# Make a list of the data variables that you'd like to save
+# These are the data that you will upload to the StreamPULSE database
+# (the function automatically grabs "DateTime", so you don't need to add it here)
+getvars <- c("water_temp", "depth", "DOconcmgL")
+
 # This will save a file in your working directory with the name: REGIONID_SITEID_DOWNLOADDATE.csv
+save_SPcsv(getvars)
