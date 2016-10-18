@@ -1,7 +1,7 @@
 ### FUNCTIONS FOR PRE-PROCESSING STREAMPULSE DATA ###
 checkpkg = function(pkg){
   if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
-  library(pkg,character.only=TRUE)
+  library(pkg, character.only=TRUE)
 }
 checkpkg("dplyr")
 checkpkg("readr")

@@ -4,30 +4,22 @@
 # Last updated: 2016-10-18
 # For the most up-to-date version you can go to:
 #  https://github.com/berdaniera/StreamPULSE/tree/master/spfns
-
-checkpkg <- function(pkg){
-  if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
-  library(pkg,character.only=TRUE)
-}
 # FYI: you need an internet connection to run this code
 
 # Set working directory to find your data files
 # This will be a file path. It could be something like: wd <- "C:/Users/username/Desktop/StreampulseUpload/"
 wd <- "/home/aaron/Desktop/SP/"
 setwd(wd)
-# This directory should contain the datalogger files that you wish to upload
+# This directory should contain the datalogger files that you wish to upload **and** the spFns.R file
 # FOR EXAMPLE, you might have four files in this folder:
 # - NC_Eno_2016-10-06_CS.dat - the campbell scientific CR1000 file
 # - NC_Eno_2016-10-06_HA.csv - the hobo air pressure file
 # - NC_Eno_2016-10-06_HD.csv - the hobo oxygen sensor file
 # - NC_Eno_2016-10-06_HW.csv - the hobo water pressure file
+# - spFns.R - the source functions file
 
 # Load the latest spFns file
-checkpkg("devtools")
-source_url("https://raw.githubusercontent.com/berdaniera/StreamPULSE/master/spfns/spFns.R")
-# IF THIS DOESN'T WORK... let me know!
-# Alternatvely, you can go to the GitHub link above, save the spFns.R file into your working directory, and then run:
-#source("spFns.R")
+source("spFns.R")
 
 ################
 ### 1. LOAD DATA
