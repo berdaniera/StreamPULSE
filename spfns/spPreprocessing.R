@@ -23,7 +23,7 @@ setwd(wd)
 # - NC_Eno_2016-10-06_HW.csv - the hobo water pressure file
 
 # Load the latest spFns file
-source_https("https://raw.githubusercontent.com/berdaniera/StreamPULSE/master/spfns/spFns.R")
+source_github("https://raw.githubusercontent.com/berdaniera/StreamPULSE/master/spfns/spFns.R")
 # IF THIS DOESN'T WORK... let me know!
 # Alternatvely, you can go to the GitHub link above, save the spFns.R file into your working directory, and then run:
 #source("spFns.R")
