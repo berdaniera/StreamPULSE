@@ -16,7 +16,7 @@ setwd(wd)
 # - spFns.R
 
 # load functions
-source("/home/aaron/StreamPULSE/spfns/spFns.R")
+source("spFns.R")
 
 ################
 ### 1. LOAD DATA

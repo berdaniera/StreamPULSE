@@ -5,7 +5,6 @@ if(!require(httr)) install.packages("httr")
 library(dplyr)
 library(readr)
 
-x
 ### DATA CHECKING
 check_ts = function(x, samp_freq=NULL){
   # x is a vector of timestamps
@@ -40,11 +39,6 @@ check_ts = function(x, samp_freq=NULL){
     "Gaps in data:",numbergaps,"\n",
     "Missing days:",missingdays,"\n")
 }
-
-
-ff
-f = ff[10]
-
 
 ### DATA LOADING
 # Read Hobo data .csv
@@ -101,7 +95,6 @@ load_stack_file = function(files, gmtoff, logger){
   arrange(xx, DateTimeUTC)
 }
 
-
 # Read and munge files for a site and date
 sp_in = function(site, dnld_date, gmtoff=NULL){
   sitedate = paste0(site,"_",dnld_date,"_")
@@ -126,7 +119,6 @@ sp_in = function(site, dnld_date, gmtoff=NULL){
   }
   fold_ts(x)
 }
-
 
 get_gmtoff = function(lat, lng, dnld_date, dst=TRUE){
 #  obs_date = sub("(.*_)(.*)", "\\2", sitedate)
