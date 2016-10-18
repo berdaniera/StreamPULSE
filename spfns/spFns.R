@@ -258,8 +258,8 @@ mV2fdom = function(mV, fdom_offset){
 ### DATA DOWNLOAD
 save_SPcsv = function(getvars){
   dataoutput = data %>% select_(.dots=c("DateTime",getvars))
-  write_csv(dataoutput, paste0(sitedate,".csv"))
-  cat(paste0("The merged data were saved as ",sitedate,".csv\n"))
+  write_csv(dataoutput, paste0(site,"_",dnld_date,".csv"))
+  cat(paste0("The merged data were saved as ",site,"_",dnld_date,".csv\n"))
 }
 
 
