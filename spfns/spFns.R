@@ -1,10 +1,11 @@
 ### FUNCTIONS FOR PRE-PROCESSING STREAMPULSE DATA ###
-checkpkg = function(pkg) if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
+checkpkg = function(pkg){
+  if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
+  library(pkg,character.only=TRUE)
+}
 checkpkg("dplyr")
 checkpkg("readr")
 checkpkg("httr")
-library(dplyr)
-library(readr)
 
 ### DATA CHECKING
 check_ts = function(x, samp_freq=NULL){
@@ -126,9 +127,9 @@ get_gmtoff = function(lat, lng, dnld_date, dst=TRUE){
   ts = as.numeric(as.POSIXct(dnld_date,format="%Y-%m-%d",origin="1970-01-01"))
   ur = paste0("https://maps.googleapis.com/maps/api/timezone/json?timestamp=",ts,"&location=",lat,",",lng)
   offs = as.numeric(sapply(ur,function(ur){
-    res = httr::GET(ur)
-    if(httr::status_code(res)!=200) stop("Error with API. \n You'll need to try again or get the offset somewhere else.")
-    out = httr::content(res)
+    res = GET(ur)
+    if(status_code(res)!=200) stop("Error with API. \n You'll need to try again or get the offset somewhere else.")
+    out = content(res)
     offs = out$rawOffset
     if(dst) offs = offs+out$dstOffset
     offs = offs/3600

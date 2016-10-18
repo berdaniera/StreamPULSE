@@ -2,15 +2,14 @@
 # Aaron Berdanier
 # aaron.berdanier@gmail.com
 # Last updated: 2016-10-18
+# For the most up-to-date version you can go to:
+#  https://github.com/berdaniera/StreamPULSE/tree/master/spfns
 
-# FYI: you need an internet connection to run this code
-# Some functions to load
-checkpkg <- function(pkg) if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
-source_github <- function(url){
-  checkpkg("RCurl")
-  code <- RCurl::getURL(url, followlocation=TRUE, cainfo=system.file("CurlSSL", "cacert.pem", package="RCurl"))
-  eval(parse(text=code), envir=.GlobalEnv)
+checkpkg <- function(pkg){
+  if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
+  library(pkg,character.only=TRUE)
 }
+# FYI: you need an internet connection to run this code
 
 # Set working directory to find your data files
 # This will be a file path. It could be something like: wd <- "C:/Users/username/Desktop/StreampulseUpload/"
@@ -24,7 +23,8 @@ setwd(wd)
 # - NC_Eno_2016-10-06_HW.csv - the hobo water pressure file
 
 # Load the latest spFns file
-source_github("https://raw.githubusercontent.com/berdaniera/StreamPULSE/master/spfns/spFns.R")
+checkpkg("devtools")
+source_url("https://raw.githubusercontent.com/berdaniera/StreamPULSE/master/spfns/spFns.R")
 # IF THIS DOESN'T WORK... let me know!
 # Alternatvely, you can go to the GitHub link above, save the spFns.R file into your working directory, and then run:
 #source("spFns.R")
@@ -32,11 +32,11 @@ source_github("https://raw.githubusercontent.com/berdaniera/StreamPULSE/master/s
 ################
 ### 1. LOAD DATA
 # `sp_in()` loads and munges all data files from the defined site and download date
-# It needs `sitedate` (as `REGIONID_SITEID_YYYY-MM-DD`) and `gmtoff`
+# It needs the `site` name, the download date(s) (`dnld_date`), and `gmtoff`
 
 site <- "NC_Eno"
 dnld_date <- "2016-10-06"
-# The functions can accommodate multiple download dates
+# The functions can accommodate multiple download dates, e.g.:
 #dnld_date <- c("2016-10-06","2016-10-11","2016-10-13")
 
 # We need timezone information to correctly convert the Campbell Scientific TIMESTAMPs
@@ -51,11 +51,17 @@ gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=TRUE)
 
 data <- sp_in(site, dnld_date, gmtoff)
 data
+# This does a lot in the background, including:
+# - reading in different data logger formats
+# - checking data gaps and duplicate dates
+# - snapping date-times to the nearest interval
+# - stacking data from different download dates
+# - merging data columns from different dataloggers
 
 
 ################
 ### 2. CONVERSIONS where necessary
-# You only need to run the ones of these that you need.
+# You only need to run the ones that you need.
 # For example, for sites with only Hobo loggers, you will not need to run the Turbidity and fDOM calculations
 
 # Conversion factors for sensors
