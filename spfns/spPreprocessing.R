@@ -9,10 +9,10 @@ wd <- "/home/aaron/Desktop/SP/"
 setwd(wd)
 # This directory should contain the datalogger files that you wish to upload **and** the spfns.R file
 # FOR EXAMPLE, you might have five files in this folder:
-# - NC_Eno_20161006_CS.dat - the campbell scientific CR1000 file
-# - NC_Eno_20161006_HA.csv - the hobo air pressure file
-# - NC_Eno_20161006_HD.csv - the hobo oxygen sensor file
-# - NC_Eno_20161006_HW.csv - the hobo water pressure file
+# - NC_Eno_2016-10-06_CS.dat - the campbell scientific CR1000 file
+# - NC_Eno_2016-10-06_HA.csv - the hobo air pressure file
+# - NC_Eno_2016-10-06_HD.csv - the hobo oxygen sensor file
+# - NC_Eno_2016-10-06_HW.csv - the hobo water pressure file
 # - spFns.R
 
 # load functions
@@ -21,9 +21,11 @@ source("/home/aaron/StreamPULSE/spfns/spFns.R")
 ################
 ### 1. LOAD DATA
 # `sp_in()` loads and munges all data files from the defined site and download date
-# It needs `sitedate` (as `REGIONID_SITEID_YYYYMMDD`) and `gmt.off`
+# It needs `sitedate` (as `REGIONID_SITEID_YYYY-MM-DD`) and `gmtoff`
 
-sitedate <- "NC_MudTrib_20161006"
+site <- "NC_Eno"
+dnld_date <- "2016-10-06"
+dnld_date <- c("2016-10-06","2016-10-11","2016-10-13")
 
 # We need timezone information to correctly convert the Campbell Scientific TIMESTAMPs
 # IMPORTANT: CR1000 dataloggers sync the clock to the download computer
@@ -33,13 +35,16 @@ sitedate <- "NC_MudTrib_20161006"
 #   e.g., in NC:  lat <- 36; lng <- (-78)
 lat <- 36
 lng <- (-78)
-gmtoff <- get_gmtoff(lat, lng, sitedate, dst=TRUE)
+gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=TRUE)
 
 data <- sp_in(sitedate, gmtoff)
 data
 
 ################
 ### 2. CONVERSIONS where necessary
+# You only need to run the ones of these that you need.
+# For example, for sites with only Hobo loggers, you will not need to run the Turbidity and fDOM calculations
+
 depth_offset <- 0 # The distance (in m) from the bed to the water pressure sensor
 fdom_offset <- 0 # The measured calibration offset for the fDOM sensor
 turb_offset <- 0 # The measured calibration offset forthe turbidity sensor

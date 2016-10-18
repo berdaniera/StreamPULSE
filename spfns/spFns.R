@@ -70,11 +70,10 @@ read_csci = function(f, gmtoff){
 }
 
 # Load streampulse files - based on data logger type
-load_file = function(f, gmtoff){
-  datalogger = sub("(.*_)(.*)\\..*", "\\2", f)
-  if(datalogger == "CS"){ # cs data logger
+load_file = function(f, gmtoff, logger){
+  if(logger == "CS"){ # cs data logger
     read_csci(f, gmtoff)
-  }else if(grepl("H",datalogger)){ # hobo data logger
+  }else if(grepl("H",logger)){ # hobo data logger
     read_hobo(f)
   }else{ # other data - must have just one header row
     read_csv(f)
@@ -83,14 +82,17 @@ load_file = function(f, gmtoff){
 
 # Read and munge files for a site and date
 sp_in = function(sitedate, gmtoff=NULL){
-  ff = grep(paste0(sitedate,"_"), list.files(), value=TRUE) # only get files that are from dataloggers
+  sitedate = paste0(site,"_",dnld_date,"_")
+  if(length(sitedate)>1) sitedate = paste(sitedate,collapse="|")
+  ff = grep(sitedate, list.files(), value=TRUE) # only get files that are from dataloggers
   if(length(ff)==0) stop("No files found matching that site-date combination...")
+  logger = sub("(.*_)(.*)\\..*", "\\2", ff)
   if(length(ff)==1){
-    xx = load_file(ff, gmtoff)
+    xx = load_file(ff, gmtoff, logger)
     wash_ts(xx, dup_action="average", samp_freq="15M")
   }else{
     x = lapply(ff,function(f){
-      xx = load_file(f, gmtoff)
+      xx = load_file(f, gmtoff, logger)
       wash_ts(xx, dup_action="average", samp_freq="15M")
     })
     fold_ts(x)
@@ -98,17 +100,20 @@ sp_in = function(sitedate, gmtoff=NULL){
 }
 
 
-get_gmtoff = function(lat, lng, sitedate, dst=TRUE){
-  obs_date = sub("(.*_)(.*)", "\\2", sitedate)
-  ts = as.numeric(as.POSIXct(obs_date,format="%Y%m%d",origin="1970-01-01"))
+get_gmtoff = function(lat, lng, dnld_date, dst=TRUE){
+#  obs_date = sub("(.*_)(.*)", "\\2", sitedate)
+  ts = as.numeric(as.POSIXct(dnld_date,format="%Y-%m-%d",origin="1970-01-01"))
   ur = paste0("https://maps.googleapis.com/maps/api/timezone/json?timestamp=",ts,"&location=",lat,",",lng)
-  res = httr::GET(ur)
-  if(httr::status_code(res)!=200) stop("Error with API. \n You'll need to try again or get the offset somewhere else.")
-  out = httr::content(res)
-  offs = out$rawOffset
-  if(dst) offs = offs+out$dstOffset
-  offs = offs/3600
-  cat("Google got the timezone offset for you:",offs,"hours\n")
+  offs = as.numeric(sapply(ur,function(ur){
+    res = httr::GET(ur)
+    if(httr::status_code(res)!=200) stop("Error with API. \n You'll need to try again or get the offset somewhere else.")
+    out = httr::content(res)
+    offs = out$rawOffset
+    if(dst) offs = offs+out$dstOffset
+    offs = offs/3600
+    offs
+  }))
+  cat("Google got the timezone offsets for you:\n",paste0(dnld_date,": ",offs," hours\n"))
   offs
 }
 
@@ -224,6 +229,10 @@ mV2fdom = function(mV, fdom_offset){
 
 # mV to CO2 (ppm)
 # mV2CO2 = function(){}
+
+
+
+### IN THE FUTURE, make a transformation pipeline function
 
 
 ### DATA DOWNLOAD
