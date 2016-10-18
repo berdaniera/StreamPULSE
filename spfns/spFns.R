@@ -216,7 +216,8 @@ fold_ts = function(...){
     print("Please clean all data sets before running merge_ts()")
   }
   cat("Your data are cleaned.\n")
-  Reduce(function(df1,df2) full_join(df1,df2,by="DateTime"), ll)
+  x = Reduce(function(df1,df2) full_join(df1,df2,by="DateTime"), ll)
+  arrange(x, DateTime)
 }
 
 
