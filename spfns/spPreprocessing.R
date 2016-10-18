@@ -8,7 +8,8 @@
 checkpkg <- function(pkg) if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
 source_github <- function(url){
   checkpkg("RCurl")
-  eval(parse(text = RCurl::getURL(url, followlocation = TRUE, cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))), envir = .GlobalEnv)
+  code <- RCurl::getURL(url, followlocation=TRUE, cainfo=system.file("CurlSSL", "cacert.pem", package="RCurl"))
+  eval(parse(text=code), envir=.GlobalEnv)
 }
 
 # Set working directory to find your data files
@@ -66,7 +67,7 @@ turb_offset <- 0 # The measured calibration offset forthe turbidity sensor
 # This function requires a preprocessed table and a `depth_offset`
 # It can also be calculated by explicitly defining matched data set variables:
 #   `water_kPa`, `air_kPa`, `air_temp`
-data$depth <- kPa2depth(data, depth_offset)
+data$depthm <- kPa2depth(data, depth_offset)
 
 # Calculate turbidity (NTU) from Cyclops 7 mV reading
 # This function requires the measured mV column from the data table
@@ -88,7 +89,7 @@ colnames(data)
 # Make a list of the data variables that you'd like to save
 # These are the data that you will upload to the StreamPULSE database
 # (the function automatically grabs "DateTime", so you don't need to add it here)
-getvars <- c("water_temp", "depth", "DOconcmgL")
+getvars <- c("water_temp", "depthm", "DOconcmgL")
 
 # This will save a file in your working directory with the name: REGIONID_SITEID_DOWNLOADDATE.csv
 save_SPcsv(getvars)
