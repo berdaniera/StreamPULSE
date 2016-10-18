@@ -1,7 +1,7 @@
 ### FUNCTIONS FOR PRE-PROCESSING STREAMPULSE DATA ###
-if(!require(dplyr)) install.packages("dplyr")
-if(!require(readr)) install.packages("readr")
-if(!require(httr)) install.packages("httr")
+checkpkg("dplyr")
+checkpkg("readr")
+checkpkg("httr")
 library(dplyr)
 library(readr)
 

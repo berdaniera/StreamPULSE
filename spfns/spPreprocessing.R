@@ -1,25 +1,32 @@
 ### StreamPULSE data preprocessing
 # Aaron Berdanier
 # aaron.berdanier@gmail.com
-# Last updated: 2016-10-14
+# Last updated: 2016-10-18
+
+# FYI: you need an internet connection to run this code
+# Some functions to load
+checkpkg <- function(pkg) if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
+source_github <- function(url){
+  checkpkg("RCurl")
+  eval(parse(text = RCurl::getURL(url, followlocation = TRUE, cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))), envir = .GlobalEnv)
+}
 
 # Set working directory to find your data files
 # This will be a file path. It could be something like: wd <- "C:/Users/username/Desktop/StreampulseUpload/"
 wd <- "/home/aaron/Desktop/SP/"
 setwd(wd)
-# This directory should contain the datalogger files that you wish to upload **and** the spfns.R file
-# FOR EXAMPLE, you might have five files in this folder:
+# This directory should contain the datalogger files that you wish to upload
+# FOR EXAMPLE, you might have four files in this folder:
 # - NC_Eno_2016-10-06_CS.dat - the campbell scientific CR1000 file
 # - NC_Eno_2016-10-06_HA.csv - the hobo air pressure file
 # - NC_Eno_2016-10-06_HD.csv - the hobo oxygen sensor file
 # - NC_Eno_2016-10-06_HW.csv - the hobo water pressure file
-# - spFns.R
 
-library(devtools)
-source_url("https://raw.githubusercontent.com/berdaniera/StreamPULSE/master/spfns/spFns.R")
-
-# load functions
-source("spFns.R")
+# Load the latest spFns file
+source_https("https://raw.githubusercontent.com/berdaniera/StreamPULSE/master/spfns/spFns.R")
+# IF THIS DOESN'T WORK... let me know!
+# Alternatvely, you can go to the GitHub link above, save the spFns.R file into your working directory, and then run:
+#source("spFns.R")
 
 ################
 ### 1. LOAD DATA
@@ -44,12 +51,13 @@ gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=TRUE)
 data <- sp_in(site, dnld_date, gmtoff)
 data
 
+
 ################
 ### 2. CONVERSIONS where necessary
 # You only need to run the ones of these that you need.
 # For example, for sites with only Hobo loggers, you will not need to run the Turbidity and fDOM calculations
 
-# Conversion factors
+# Conversion factors for sensors
 depth_offset <- 0 # The distance (in m) from the bed to the water pressure sensor
 fdom_offset <- 0 # The measured calibration offset for the fDOM sensor
 turb_offset <- 0 # The measured calibration offset forthe turbidity sensor
@@ -70,6 +78,7 @@ data$fDOM <- mV2fdom(data$fDOM, fdom_offset)
 # coming soon...
 # Viasala to CO2 (ppm)
 # Lux to par?
+
 
 ################
 # 3. SELECT EXPORT COLUMNS AND SAVE
