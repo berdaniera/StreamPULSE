@@ -25,7 +25,8 @@ source("/home/aaron/StreamPULSE/spfns/spFns.R")
 
 site <- "NC_Eno"
 dnld_date <- "2016-10-06"
-dnld_date <- c("2016-10-06","2016-10-11","2016-10-13")
+# The functions can accommodate multiple download dates
+#dnld_date <- c("2016-10-06","2016-10-11","2016-10-13")
 
 # We need timezone information to correctly convert the Campbell Scientific TIMESTAMPs
 # IMPORTANT: CR1000 dataloggers sync the clock to the download computer
@@ -37,7 +38,7 @@ lat <- 36
 lng <- (-78)
 gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=TRUE)
 
-data <- sp_in(sitedate, gmtoff)
+data <- sp_in(site, dnld_date, gmtoff)
 data
 
 ################
@@ -45,6 +46,7 @@ data
 # You only need to run the ones of these that you need.
 # For example, for sites with only Hobo loggers, you will not need to run the Turbidity and fDOM calculations
 
+# Conversion factors
 depth_offset <- 0 # The distance (in m) from the bed to the water pressure sensor
 fdom_offset <- 0 # The measured calibration offset for the fDOM sensor
 turb_offset <- 0 # The measured calibration offset forthe turbidity sensor
@@ -62,9 +64,9 @@ data$TurbidityNTU <- mV2turb(data$Turb, turb_offset)
 # Calculate fDOM from Cyclops 7 mV reading
 data$fDOM <- mV2fdom(data$fDOM, fdom_offset)
 
-# mV from Viasala to CO2 (ppm)
 # coming soon...
-
+# Viasala to CO2 (ppm)
+# Lux to par?
 
 ################
 # 3. SELECT EXPORT COLUMNS AND SAVE

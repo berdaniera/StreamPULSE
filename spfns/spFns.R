@@ -5,15 +5,16 @@ if(!require(httr)) install.packages("httr")
 library(dplyr)
 library(readr)
 
+x
 ### DATA CHECKING
 check_ts = function(x, samp_freq=NULL){
   # x is a vector of timestamps
   # function checks for date order, gaps in data, and missing days
-  dx = diff(x)
+  dx = diff(unique(x))
   units(dx) = "secs"
   if(is.null(samp_freq)){
     # samp_freq = mode
-    mdx = as.numeric(names(table(dx)[1]))
+    mdx = as.numeric(names(sort(table(dx),decreasing=T)[1]))
   }else{
     re = regexec("([0-9]+)([A-Z])",samp_freq)[[1]]
     if(-1%in%re){
@@ -32,71 +33,98 @@ check_ts = function(x, samp_freq=NULL){
   gaps = tibble(t1=x[which(dx != mdx)],t2=x[which(dx != mdx)+1])
   numbergaps = nrow(gaps)
   wrongorder = length(which(dx < 0)) # n DateTime out of order
-  missingdays = sum(as.numeric(gaps$t2-gaps$t1,units="secs"))
-  missingdays = as.numeric(floor(missingdays)) # number of missing days
-  cat("Sampling frequency:",mdx/60,"minutes\n",
+  missingdays = sum(as.numeric(gaps$t2-gaps$t1,units="secs"))/86400
+  missingdays = as.numeric(missingdays) # number of missing days
+  cat(" Sampling frequency:",mdx/60,"minutes\n",
     "Date-times out of order:",wrongorder,"\n",
     "Gaps in data:",numbergaps,"\n",
     "Missing days:",missingdays,"\n")
 }
 
 
+ff
+f = ff[10]
+
+
 ### DATA LOADING
 # Read Hobo data .csv
 read_hobo = function(f){
-  f1 = read_csv(f, skip=1)
+  f1 = read_csv(f, skip=1, col_types = cols())
   f1 = f1[,-grep("Coupler|File|Stopped",colnames(f1))]
-  m = regexpr("\\,.*",colnames(f1),perl=T) # parse column names
+  # parse column names
+  m = regexpr("\\,.*",colnames(f1),perl=T)
   uu = sapply(strsplit(regmatches(colnames(f1),m)," "), function(x) x[2]) # get units
-  colnames(f1) = gsub("\\ |\\/","",c("N","DateTimeUTC",paste(unlist(strsplit(colnames(f1)[3],","))[1],uu[2]),"Temp"))
+  uu = gsub("°(.*)","\\1",uu)[-1] # get rid of degree symbol -- annoying
+  cc = unlist(lapply(strsplit(colnames(f1),","),function(x) x[1]))[-c(1:2)]
+  colnames(f1) = gsub("\\ |\\/","",c("N","DateTimeUTC",paste(cc,uu)))
+  # fix time zones
   tzoff = ifelse(grepl("-",uu[1]), sub("-","+",uu[1]), sub("+","-",uu[1])) # switch time zone to match R conventions
   dada = sub("^(.*\\ )12(:.{2}:.{2}\\ )AM(.*)$", "\\10\\2AM\\3", paste(f1$DateTimeUTC,tzoff)) # convert 12AM to 0AM (midnight)
   dada = sub("^(.*\\ )12(:.{2}:.{2}\\ )PM(.*)$", "\\112\\2AM\\3", dada) # convert 12PM to 12AM (noon)
   f1$DateTimeUTC = parse_datetime(dada,"%D %T %p %Z")
-  if(grepl("_HW",f)) f1 = rename(f1, water_kPa=AbsPreskPa, water_temp=Temp) # water pressure file
-  if(grepl("_HA",f)) f1 = rename(f1, air_kPa=AbsPreskPa, air_temp=Temp) # air pressure file
+  # change column names
+  if(grepl("_HW",f)) f1 = rename(f1, water_kPa=AbsPreskPa, water_temp=TempC) # water pressure file
+  if(grepl("_HA",f)) f1 = rename(f1, air_kPa=AbsPreskPa, air_temp=TempC) # air pressure file
+  if(grepl("_HD",f)) f1 = rename(f1, DO_temp=TempC) # DO file
+  if(grepl("_HP",f)) f1 = rename(f1, light_temp=TempC) # DO file
   f1 %>% filter(apply(f1,1,function(x) all(!is.na(x)))) %>% select(-N)
 }
 
 # Read Campbell Scientific data .dat
 read_csci = function(f, gmtoff){
   if(is.null(gmtoff)) stop("Time zone offset not defined. \n Please include it and try again.")
-  tzoff = -gmtoff
-  hh = read_csv(f, skip=1, n_max=2)
-  f1 = read_csv(f, skip=4, col_names=colnames(hh),col_types=cols(TIMESTAMP = "c"))
+  tzoff = -gmtoff # need to be negative because R does ts offsets backwards from intuition
+  hh = read_csv(f, skip=1, n_max=2, col_types=cols()) # load header row
+  f1 = read_csv(f, skip=4, col_names=colnames(hh),col_types=cols(TIMESTAMP = "c")) # load data
   f1$DateTimeUTC = parse_datetime(paste(f1$TIMESTAMP,tzoff),"%F %T %Z")
   ccn = colnames(f1)
-  f1 %>% select_(.dots=c("DateTimeUTC",ccn[-grep("DateTimeUTC",ccn)])) %>% rename(LocalDateTime = TIMESTAMP)
+  f1 %>% select_(.dots=c("DateTimeUTC",ccn[-grep("DateTimeUTC|TIMESTAMP",ccn)]))
 }
 
 # Load streampulse files - based on data logger type
 load_file = function(f, gmtoff, logger){
+  cat(paste0(f,"\n"))
   if(logger == "CS"){ # cs data logger
     read_csci(f, gmtoff)
   }else if(grepl("H",logger)){ # hobo data logger
     read_hobo(f)
   }else{ # other data - must have just one header row
-    read_csv(f)
+    read_csv(f, col_types=cols())
   }
 }
 
+# stack data files from the same data logger but different dates
+load_stack_file = function(files, gmtoff, logger){
+  dates = sub(".*_(.*)_.*\\..*", "\\1", files) # get all dates
+  xx = lapply(dates, function(x) load_file(grep(x,files,value=TRUE), gmtoff$offs[which(gmtoff$dnld_date==x)], logger) ) # load data for each date
+  xx = Reduce(function(df1,df2) bind_rows(df1,df2), xx) # stack them up
+  arrange(xx, DateTimeUTC)
+}
+
+
 # Read and munge files for a site and date
-sp_in = function(sitedate, gmtoff=NULL){
+sp_in = function(site, dnld_date, gmtoff=NULL){
   sitedate = paste0(site,"_",dnld_date,"_")
-  if(length(sitedate)>1) sitedate = paste(sitedate,collapse="|")
+  if(length(sitedate)>1) sitedate = paste(sitedate, collapse="|")
   ff = grep(sitedate, list.files(), value=TRUE) # only get files that are from dataloggers
   if(length(ff)==0) stop("No files found matching that site-date combination...")
-  logger = sub("(.*_)(.*)\\..*", "\\2", ff)
-  if(length(ff)==1){
-    xx = load_file(ff, gmtoff, logger)
-    wash_ts(xx, dup_action="average", samp_freq="15M")
-  }else{
-    x = lapply(ff,function(f){
-      xx = load_file(f, gmtoff, logger)
+  logger = unique(sub("(.*_)(.*)\\..*", "\\2", ff)) # which data loggers are represented?
+  if(length(ff)==1){ # only one file, load it regularly
+    xx = load_file(ff, gmtoff$offs, logger)
+    x = wash_ts(xx, dup_action="average", samp_freq="15M")
+  }else{ # multiple files
+    x = lapply(logger,function(l){ # files from each logger
+      f = grep(l, ff, value=TRUE)
+      if(length(f)>1){ # load and stack files
+        xx = load_stack_file(f, gmtoff, l)
+      }else{ # load the file
+        offs = gmtoff$offs[which(gmtoff$dnld_date==sub(".*_(.*)_.*\\..*", "\\1", f))]
+        xx = load_file(f, offs, l)
+      }
       wash_ts(xx, dup_action="average", samp_freq="15M")
     })
-    fold_ts(x)
   }
+  fold_ts(x)
 }
 
 
@@ -114,7 +142,7 @@ get_gmtoff = function(lat, lng, dnld_date, dst=TRUE){
     offs
   }))
   cat("Google got the timezone offsets for you:\n",paste0(dnld_date,": ",offs," hours\n"))
-  offs
+  tibble(dnld_date,offs)
 }
 
 
@@ -185,7 +213,6 @@ wash_ts = function(x, dup_action=c("average","drop"), samp_freq=NULL, dt_colname
     }
   }
 
-  cat("Your data are cleaned.\n")
   x
 }
 
@@ -195,6 +222,7 @@ fold_ts = function(...){
   if(!all(sapply(ll,function(x) colnames(x)[1]=="DateTime"))){
     print("Please clean all data sets before running merge_ts()")
   }
+  cat("Your data are cleaned.\n")
   Reduce(function(df1,df2) full_join(df1,df2,by="DateTime"), ll)
 }
 
