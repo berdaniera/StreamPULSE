@@ -204,7 +204,6 @@ wash_ts = function(x, dup_action=c("average","drop"), samp_freq=NULL, dt_colname
       cat("Duplicates found but no action taken.\n")
     }
   }
-
   x
 }
 

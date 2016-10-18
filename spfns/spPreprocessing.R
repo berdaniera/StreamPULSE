@@ -15,6 +15,9 @@ setwd(wd)
 # - NC_Eno_2016-10-06_HW.csv - the hobo water pressure file
 # - spFns.R
 
+library(devtools)
+source_url("https://raw.githubusercontent.com/berdaniera/StreamPULSE/master/spfns/spFns.R")
+
 # load functions
 source("spFns.R")
 
