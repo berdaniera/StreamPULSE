@@ -1,4 +1,20 @@
-# Load new data
+# Load backup data
+backup = reactive({
+  inFile = input$fileback
+  if (is.null(inFile))
+    return(NULL)
+  apply(inFile, 1, function(x) put_object(file=x[4], object=x[1], bucket="streampulserawdata"))
+  return(inFile$name)
+})
+observe({
+  if(!is.null(backup())){
+    output$backupstatus = renderUI({
+      wellPanel(HTML(paste0("Saved ",backup(),"<br>", collapse="")))
+    })
+  }
+})
+
+# Load merged data
 dataup = reactive({
   inFile = input$file1
   if (is.null(inFile))
