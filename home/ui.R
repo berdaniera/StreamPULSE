@@ -35,7 +35,7 @@ body <- dashboardBody(
                   HTML(paste("<b>Choose a file to upload.</b>",
                     "Please only choose one file at a time. And be sure to check out the <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>data upload SOP</a>. You can perform the upload/QAQC procedure multiple times.<br>",
                     "Your file should have a) only one header row, b) the first column with a UTC Date-Time, and c) data columns separated with commas.",
-                    "For help, check out <a href='https://github.com/berdaniera/StreamPULSE/tree/master/spfns'>these helpful R functions</a>"),
+                    "For help, check out <a href='https://github.com/berdaniera/StreamPULSE/tree/master/spfns'>these helpful R functions</a>")),
                   br(),br(),
                   uiOutput('fileup'),
                   uiOutput('filestatsupload'),
