@@ -46,7 +46,7 @@ body <- dashboardBody(
                   br(),br(),
                   uiOutput('filebackup'),
                   br(),
-                  textOutput('backupstatus')
+                  uiOutput('backupstatus')
                 ),
                 column(4,
                   actionLink("showeg","How does data flagging work? [+/-]"),

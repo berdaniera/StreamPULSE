@@ -1,15 +1,15 @@
 # Load backup data
 backup = reactive({
-  inFile = input$fileback
-  if (is.null(inFile))
+  backFile = input$fileback
+  print(backFile)
+  if (is.null(backFile))
     return(NULL)
-  apply(inFile, 1, function(x) put_object(file=x[4], object=x[1], bucket="streampulserawdata"))
-  inFile$name
+  sapply(1:nrow(backFile), function(x) put_object(file=backFile$datapath[x], object=backFile$name[x], bucket="streampulserawdata"))
+  backFile$name
 })
 observe({
   if(!is.null(backup())){
     fnames = backup()
-    print(fnames)
     output$backupstatus = renderUI({
       wellPanel(HTML(paste0("Saved ",fnames,"<br>", collapse="")))
     })
