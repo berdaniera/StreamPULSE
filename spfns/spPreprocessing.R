@@ -39,7 +39,7 @@ dnld_date <- "2016-10-06"
 #   e.g., in NC:  lat <- 36; lng <- (-78)
 lat <- 36
 lng <- (-78)
-gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=TRUE)
+gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=FALSE)
 
 data <- sp_in(site, dnld_date, gmtoff)
 data

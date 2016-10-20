@@ -89,7 +89,6 @@ fitModel = function(){
   dat = dataup()
   #### get the data that is in the training data columns
   dat = dat %>% select_(.dots=colnames(training$dat))
-  dat$DateTimeUTC = as.POSIXct(dat$DateTimeUTC)
   dat = dat %>% filter(!duplicated(DateTimeUTC))
 
   # data automatically includes the change in each variable too...
@@ -190,13 +189,11 @@ observeEvent(input$na_rm,{
 # # ADD A NEW FLAG
 observeEvent(input$flag_new,{
   newflags = brushedLogic(flags$d, input$plot_brush)
-  #newflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
   if(any(newflags)) flags$d$f[newflags] = 1
 })
 # # ERASE A FLAG
 observeEvent(input$flag_erase,{
   eraseflags = brushedLogic(flags$d, input$plot_brush)
-  #eraseflags = brushedPoints(df=flags$d, brush=input$plot_brush, allRows=TRUE)$selected_
   if(any(eraseflags)){
     flags$d$f[eraseflags] = 0
     flags$d$t[eraseflags] = 0.5
@@ -235,7 +232,6 @@ observeEvent(input$flag_save,{
   unflgd = flags$d %>% filter(f!=2) %>% select(-f, -t) %>% spread(variable, value)
 
   trainingdat = bind_rows(training$dat, unflgd) %>% distinct()
-  #savefn = function(){ paste0(sub("(.*)\\..*", "\\1", input$file1$name),"-",Sys.Date(), ".Rda") }
   ffilePath = paste0(tempdir(),savefn(),".Rda")
   save(trainingdat, file=ffilePath)
   drop_upload(ffilePath, dest="SPtrainingdata", dtoken=dto)

@@ -98,8 +98,7 @@ server <- function(input, output, session) {
       output$Visualizer <- renderMenu( menuItem("Vizualizer", tabName = "view", icon = icon("line-chart")) )
       output$Modeler <- renderMenu( menuItem("Modeler", tabName = "model", icon = icon("cubes")) )
       output$SOPs <- renderMenu( menuItem("SOPs", tabName = "sop", icon = icon("file-text-o")) )
-      output$fileup <- renderUI( fileInput('file1', NULL,
-                                           accept = c('text/csv','text/comma-separated-values','text/plain','.csv','application/octet-stream')) )
+      output$fileup <- renderUI( fileInput('file1', NULL, accept = c('text/csv','text/comma-separated-values','text/plain','.csv')) )
     }
   })
 
