@@ -4,12 +4,14 @@ backup = reactive({
   if (is.null(inFile))
     return(NULL)
   apply(inFile, 1, function(x) put_object(file=x[4], object=x[1], bucket="streampulserawdata"))
-  return(inFile$name)
+  inFile$name
 })
 observe({
   if(!is.null(backup())){
+    fnames = backup()
+    print(fnames)
     output$backupstatus = renderUI({
-      wellPanel(HTML(paste0("Saved ",backup(),"<br>", collapse="")))
+      wellPanel(HTML(paste0("Saved ",fnames,"<br>", collapse="")))
     })
   }
 })
