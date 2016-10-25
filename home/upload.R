@@ -109,7 +109,7 @@ observeEvent(input$definecols,{
   input$CO2_ppm)
   coln$ms[[spin$d$site]] = tibble(new=newv[which(oldv!="")],old=oldv[which(oldv!="")])
   colnms = coln$ms
-  coln$all[[spin$d$site]] = colnames(spind$d$data)
+  coln$all[[spin$d$site]] = colnames(spin$d$data)
   acolnms = coln$all
   s3save(colnms,acolnms,object="meta/colnms.Rda",bucket="streampulse")
 })
