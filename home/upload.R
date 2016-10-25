@@ -107,7 +107,7 @@ observeEvent(input$definecols,{
   input$Light_lux,
   input$Light_par,
   input$CO2_ppm)
-  coln$ms[[spin$d$site]] = tibble(new=newv[which(oldv!="")],old=oldv[which(oldv!="")])
+  coln$ms[[spin$d$site]] = data.frame(new=newv[which(oldv!="")],old=oldv[which(oldv!="")])
   colnms = coln$ms
   coln$all[[spin$d$site]] = colnames(spin$d$data)
   acolnms = coln$all
