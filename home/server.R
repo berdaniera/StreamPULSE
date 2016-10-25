@@ -64,7 +64,7 @@ server <- function(input, output, session) {
   # allfnt = reactiveValues(aflags=NULL,atags=NULL)
 
   output$useBox <- renderValueBox({ valueBox(length(users$user), "Users", icon = icon("users")) })
-  nobs <- sum(read_csv("datapoints.txt",col_names="n",col_types=cols()))/1000
+  nobs <- floor(sum(read_csv("datapoints.txt",col_names="n",col_types=cols()))/1000)
   # nobs <- 0
   output$obsBox <- renderValueBox({ valueBox(paste0(nobs,"K"), "Observations", icon = icon("bar-chart"), color="yellow") })
   output$modBox <- renderValueBox({ valueBox(0, "Models run", icon = icon("cloud")) })

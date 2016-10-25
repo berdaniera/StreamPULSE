@@ -47,7 +47,7 @@ definecolumns = function(cn){
       selectizeInput("Light_lux", "Light_lux", choices=cn),
       selectizeInput("Light_par", "Light_par", choices=cn),
       selectizeInput("CO2_ppm", "CO2_ppm", choices=cn),
-      actionButton("definecols","Set columns and upload data")
+      actionButton("definecols","Set columns", width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff")
     ))
   })
 }
@@ -65,7 +65,7 @@ observe({ if(!is.null(input$awsFile)){
     if( !(site %in% names(coln$ms)) | !all(coln$all[[site]]==colnames(spin$d$data)) ){
       definecolumns(c("",colnames(spin$d$data)))
     }else{
-      output$uploadhandle = renderUI( actionButton("uploadaws","Upload data") )
+      output$uploadhandle = renderUI( actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff") )
     }
   }
 } })
