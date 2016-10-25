@@ -125,17 +125,13 @@ observeEvent(input$uploadaws, {
   sitedate = paste0(spin$d$site,"_",ddate)
   paste0(spin$d$site,"_",ddate,".Rda")
   assign(sitedate, dd)
-  s3save(get(sitedate), object=paste0("raw/",sitedate,".Rda"), bucket="streampulse")
+  tfn = tempfile()
+  save(list=c(sitedate), file=tfn)
+  put_object(file=tfn, object=paste0("raw/",sitedate,".Rda"), bucket="streampulse")
+  # s3save(get(sitedate), object=paste0("raw/",sitedate,".Rda"), bucket="streampulse")
   cat(newpoints, sep="\n", file="datapoints.txt", append=TRUE) # add new data points to list
   output$uploadhandle = renderUI(HTML(paste("Thanks! Added",newpoints,"new data points.")))
 })
-
-
-
-
-
-
-
 
 
 
