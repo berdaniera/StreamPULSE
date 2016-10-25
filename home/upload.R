@@ -22,7 +22,7 @@ awssave = function(ff){
 
 spin = reactiveValues(d=NULL) # placeholder for input data
 # colnms = acolnms = list()
-# s3save(colnms,acolnms,object="meta/colnms.Rda",bucket="streampulse")
+# s3save(colnms, acolnms, object="meta/colnms.Rda",bucket="streampulse")
 s3load(object='meta/colnms.Rda',bucket='streampulse') # load list of colnms data
 coln = reactiveValues(ms=colnms,all=acolnms) # placeholder for column names
 
@@ -111,7 +111,10 @@ observeEvent(input$definecols,{
   colnms = coln$ms
   coln$all[[spin$d$site]] = colnames(spin$d$data)
   acolnms = coln$all
-  s3save(colnms,acolnms,object="meta/colnms.Rda",bucket="streampulse")
+  tfn = tempfile()
+  save(colnms, acolnms, file=tfn)
+  put_object(file=tfn, object="meta/colnms.Rda",bucket="streampulse")
+  # s3save(colnms,acolnms,object="meta/colnms.Rda",bucket="streampulse")
 })
 
 observeEvent(input$uploadaws, {
