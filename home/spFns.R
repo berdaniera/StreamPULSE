@@ -3,8 +3,8 @@ checkpkg = function(pkg){
   if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
   library(pkg, character.only=TRUE)
 }
-checkpkg("dplyr")
-checkpkg("readr")
+# checkpkg("dplyr")
+# checkpkg("readr")
 checkpkg("httr")
 checkpkg("tibble")
 
