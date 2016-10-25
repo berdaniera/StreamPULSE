@@ -89,6 +89,7 @@ server <- function(input, output, session) {
     if(USER$Logged){ # passed login
       output$loginbox <- renderUI(loginpass)
       source("upload.R",local=TRUE)
+      source("download.R",local=TRUE)
       # source("flag.R",local=TRUE)
       userstr <- span("Login successful as ",strong(USER$Name))
       logoutstr <- div(align="right",a(href="/","Log out"))

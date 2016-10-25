@@ -18,65 +18,67 @@ sidebar <- dashboardSidebar(sidebarMenu(
 body <- dashboardBody(
   tabItems(
     tabItem(tabName = "main",
-            fluidRow(
-              valueBoxOutput("obsBox"),
-              valueBoxOutput("useBox"),
-              valueBoxOutput("modBox")
-            ),
-            fluidRow(
-              uiOutput('loginbox'),
-              box(title="Updates",dataTableOutput("updatetable"))
-            )
+      fluidRow(
+        valueBoxOutput("obsBox"),
+        valueBoxOutput("useBox"),
+        valueBoxOutput("modBox")
+      ),
+      fluidRow(
+        uiOutput('loginbox'),
+        box(title="Updates",dataTableOutput("updatetable"))
+      )
     ),
     tabItem(tabName = "upload",
-            h2("Data upload and tagging/flagging"),
-            fluidRow(
-                box(title = "Upload raw data files", width=6, status = "success",
-                  HTML(paste("Only select files from a single site with each upload (although you can select multiple files from different download dates at the same site).",
-                  "Before uploading, ensure that files match the <b>REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx</b> format.",
-                  "<br><br><u>Core sites</u> can upload their raw datalogger files (CS.dat and hobo .csv) or a pre-processed file.",
-                  "<br><u>Leveraged sites</u> need to upload <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>pre-processed data</a>",
-                  "with one header row, the first column with a UTC Date-Time, and data columns separated with commas.")),
-                  br(),br(),
-                  fileInput('awsFile', NULL, multiple=TRUE),
-                  br(),
-                  uiOutput('uploadhandle')
-                ),
-                box(title="Upload status", width=4,
-                  uiOutput('spinupstatus')
-                )
-                # box(title = "Upload merged data file to CUAHSI", width=4, status = "primary",
-                #   HTML(paste("Please only choose one file at a time. And be sure to check out the <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>data upload SOP</a>. You can perform the upload/QAQC procedure multiple times.<br>",
-                #     "Your file should have a) only one header row, b) the first column with a UTC Date-Time, and c) data columns separated with commas.",
-                #     "For help, check out <a href='https://github.com/berdaniera/StreamPULSE/tree/master/spfns'>these R functions</a>.")),
-                #   br(),br(),
-                #   uiOutput('fileup'),
-                #   uiOutput('filestatsupload'),
-                #   br(),
-                #   textOutput('uploadstatus')
-                # ),
-                # column(4,
-                #   actionLink("showeg","How does data flagging work? [+/-]"),
-                #   conditionalPanel("input.showeg%2 == 1",
-                #     HTML("The model is a One-class <a href='https://en.wikipedia.org/wiki/Support_vector_machine'>Support Vector Machine</a> with a radial kernel. It fits a decision boundary based on the multivariate relationship between the training data (for more information, see the <a href='https://docs.google.com/document/d/1333al425SOjlUsJA61WbpScuQ2KZxCuTtkkcdPZJVLI/edit?usp=sharing'>QAQC SOP</a>). In this example, the training data are shown as open circles. Randomly generated test data are overlaid in colors, based on whether the trained model classified them as 'good' or as 'anomalous'.<br><br>"),
-                #     actionButton("egdata","Generate example training and test data"),
-                #     checkboxInput("egshow","Show test data on graph"),
-                #     plotOutput("egplot")
-                #   )
-                # )
-            )
-            # uiOutput('flagui'),
-            # uiOutput('flagplt')
+      h2("Data upload"),
+      fluidRow(
+        box(title = "Upload raw data files", width=6, status = "success",
+          HTML(paste("Only select files from a single site with each upload (although you can select multiple files from different download dates at the same site).",
+          "Before uploading, ensure that files match the <b>REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx</b> format.",
+          "<br><br><u>Core sites</u> can upload their raw datalogger files (CS.dat and hobo .csv) or a pre-processed file.",
+          "<br><u>Leveraged sites</u> need to upload <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>pre-processed data</a>",
+          "with one header row, the first column with a UTC Date-Time, and data columns separated with commas.")),
+          br(),br(),
+          fileInput('awsFile', NULL, multiple=TRUE),
+          br(),
+          uiOutput('uploadhandle')
+        ),
+        box(title="Upload status", width=4,
+          uiOutput('spinupstatus')
+        )
+          # box(title = "Upload merged data file to CUAHSI", width=4, status = "primary",
+          #   HTML(paste("Please only choose one file at a time. And be sure to check out the <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>data upload SOP</a>. You can perform the upload/QAQC procedure multiple times.<br>",
+          #     "Your file should have a) only one header row, b) the first column with a UTC Date-Time, and c) data columns separated with commas.",
+          #     "For help, check out <a href='https://github.com/berdaniera/StreamPULSE/tree/master/spfns'>these R functions</a>.")),
+          #   br(),br(),
+          #   uiOutput('fileup'),
+          #   uiOutput('filestatsupload'),
+          #   br(),
+          #   textOutput('uploadstatus')
+          # ),
+          # column(4,
+          #   actionLink("showeg","How does data flagging work? [+/-]"),
+          #   conditionalPanel("input.showeg%2 == 1",
+          #     HTML("The model is a One-class <a href='https://en.wikipedia.org/wiki/Support_vector_machine'>Support Vector Machine</a> with a radial kernel. It fits a decision boundary based on the multivariate relationship between the training data (for more information, see the <a href='https://docs.google.com/document/d/1333al425SOjlUsJA61WbpScuQ2KZxCuTtkkcdPZJVLI/edit?usp=sharing'>QAQC SOP</a>). In this example, the training data are shown as open circles. Randomly generated test data are overlaid in colors, based on whether the trained model classified them as 'good' or as 'anomalous'.<br><br>"),
+          #     actionButton("egdata","Generate example training and test data"),
+          #     checkboxInput("egshow","Show test data on graph"),
+          #     plotOutput("egplot")
+          #   )
+          # )
+      )
+      # uiOutput('flagui'),
+      # uiOutput('flagplt')
     ),
     tabItem(tabName = "download",
-            h2("Data download"),
-            p("Here we will have 1. instructions for how to download data on your own from R and 2. an interface for selecting and downloading data."),
-            box(title="Data levels",dataTableOutput("table"))
+      h2("Data download"),
+      box(title = "Pull down the latest data", width=6, status = "success",
+        uiOutput('datadnld')
+      ),
+      box(title="Data levels", width=4, dataTableOutput("table"))
     ),
     tabItem(tabName = "model",
-            h2("Modeler interface"),
-            p("Later this fall we will have an area for visualizing model output."),
-            p("We may also implement a section to 'request' model runs with specific attributes.")
+      h2("Modeler interface"),
+      p("Later this fall we will have an area for visualizing model output."),
+      p("We may also implement a section to 'request' model runs with specific attributes.")
     ),
     tabItem(tabName = "sop",
       HTML('<iframe src="https://drive.google.com/embeddedfolderview?id=0B7rFlnRNN7_dUW8tc1h5REZfQk0#list" style="width:100%; height:600px; border:0;"></iframe>')
