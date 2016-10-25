@@ -17,7 +17,7 @@ mda <- data.frame(Level=c("Level 0","Level 1A","Level 1B","Level 2","Level 3"),
                   Description=c("Unprocessed sensor data","Processed data (with quality flags)","Quality filtered data from flags in level 1A (and gap-filled?)","Derived variables","Model output"),
                   Storage=c("AWS","CUAHSI HIS","ScienceBase","ScienceBase","ScienceBase"))
 
-updatestab <- data.frame(Date=c('2016-09-06','2016-09-03','2016-07-08','2016-07-01'),Up=c("QA/QC interface linked with data upload","SOP documents linked in","Dashboard online, accepting file uploads","Dashboard created"))
+updatestab <- data.frame(Date=c('2016-10-25','2016-09-06','2016-09-03','2016-07-08','2016-07-01'),Up=c("Download option available for raw data","QA/QC interface linked with data upload","SOP documents linked in","Dashboard online, accepting file uploads","Dashboard created"))
 
 s3load('meta/streampulseusers.Rdata',bucket='streampulse') # load user dataset
 # drop_get(path="streampulseusers.Rdata",local_file=file.path(tempdir(),"spusers.Rdata"),dtoken=dto,overwrite=TRUE) # getting rda file

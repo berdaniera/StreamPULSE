@@ -70,9 +70,14 @@ body <- dashboardBody(
     ),
     tabItem(tabName = "download",
       h2("Data download"),
-      box(title = "Pull down the latest data", width=6, status = "success",
+      box(title = "Pull down the latest raw data", width=6, status = "success",
+        p("Select the site(s) that you'd like to access. You can choose multiple sites. This will download a .csv file with the raw data."),
         uiOutput('datadnld')
       ),
+      # box(title = "Pull down the latest raw data", width=6, status = "success",
+      #   p("Select the site(s) that you'd like to access. You can choose multiple sites. This will download a .csv file with the raw data."),
+      #   uiOutput('datadnld')
+      # ),
       box(title="Data levels", width=4, dataTableOutput("table"))
     ),
     tabItem(tabName = "model",
