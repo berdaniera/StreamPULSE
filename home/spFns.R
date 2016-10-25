@@ -6,6 +6,7 @@ checkpkg = function(pkg){
 checkpkg("dplyr")
 checkpkg("readr")
 checkpkg("httr")
+checkpkg("tibble")
 
 ### DATA CHECKING
 check_ts = function(x, samp_freq=NULL){
