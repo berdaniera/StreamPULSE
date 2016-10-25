@@ -49,7 +49,7 @@ check_ts = function(x, samp_freq=NULL){
 
 ### DATA LOADING
 # Read Hobo data .csv
-read_hobo = function(f){
+read_hobo = function(f, fnm){
   f1 = read_csv(f, skip=1, col_types = cols())
   f1 = f1[,!grepl("Coupler|File|Stopped",colnames(f1))]
   # parse column names
@@ -64,10 +64,10 @@ read_hobo = function(f){
   dada = sub("^(.*\\ )12(:.{2}:.{2}\\ )PM(.*)$", "\\112\\2AM\\3", dada) # convert 12PM to 12AM (noon)
   f1$DateTimeUTC = parse_datetime(dada,"%D %T %p %Z")
   # change column names
-  if(grepl("_HW",f)) f1 = rename(f1, water_kPa=AbsPreskPa, water_temp=TempC) # water pressure file
-  if(grepl("_HA",f)) f1 = rename(f1, air_kPa=AbsPreskPa, air_temp=TempC) # air pressure file
-  if(grepl("_HD",f)) f1 = rename(f1, DO_temp=TempC) # DO file
-  if(grepl("_HP",f)) f1 = rename(f1, light_temp=TempC) # DO file
+  if(grepl("_HW",fnm)) f1 = rename(f1, water_kPa=AbsPreskPa, water_temp=TempC) # water pressure file
+  if(grepl("_HA",fnm)) f1 = rename(f1, air_kPa=AbsPreskPa, air_temp=TempC) # air pressure file
+  if(grepl("_HD",fnm)) f1 = rename(f1, DO_temp=TempC) # DO file
+  if(grepl("_HP",fnm)) f1 = rename(f1, light_temp=TempC) # DO file
   f1 %>% filter(apply(f1,1,function(x) all(!is.na(x)))) %>% select(-N)
 }
 
@@ -83,11 +83,11 @@ read_csci = function(f, gmtoff){
 }
 
 # Load streampulse files - based on data logger type
-load_file = function(f, gmtoff, logger){
+load_file = function(f, gmtoff, logger, fnm){
   if(logger == "CS"){ # cs data logger
     read_csci(f, gmtoff)
   }else if(grepl("H",logger)){ # hobo data logger
-    read_hobo(f)
+    read_hobo(f, fnm)
   }else{ # other data - must have just one header row
     read_csv(f, col_types=cols())
   }
@@ -96,7 +96,7 @@ load_file = function(f, gmtoff, logger){
 # stack data files from the same data logger but different dates
 load_stack_file = function(files, gmtoff, logger){
   dates = sub(".*_(.*)_.*\\..*", "\\1", files$name) # get all dates
-  xx = lapply(1:nrow(files), function(x) load_file(files$datapath[x], gmtoff$offs[which(gmtoff$dnld_date==dates[x])], logger) ) # load data for each file
+  xx = lapply(1:nrow(files), function(x) load_file(files$datapath[x], gmtoff$offs[which(gmtoff$dnld_date==dates[x])], logger, files$name[x]) ) # load data for each file
   # xx = lapply(dates, function(x) load_file(files$datapath[grepl(x,files$name,value=TRUE), gmtoff$offs[which(gmtoff$dnld_date==x)], logger) ) # load data for each date
   xx = Reduce(function(df1,df2) bind_rows(df1,df2), xx) # stack them up
   arrange(xx, DateTimeUTC)
@@ -107,7 +107,7 @@ sp_in = function(ff, gmtoff=NULL){
   logger = unique(sub("(.*_)(.*)\\..*", "\\2", ff$name)) # which data loggers are represented?
   if(length(ff$name)==1){ # only one file, load it regularly
     cat(paste0(ff$datapath,"\n"))
-    xx = load_file(ff$datapath, gmtoff$offs, logger)
+    xx = load_file(ff$datapath, gmtoff$offs, logger, ff$name)
     x = wash_ts(xx, dup_action="average", samp_freq="15M")
   }else{ # multiple files
     x = lapply(logger,function(l){ # files from each logger
@@ -117,7 +117,7 @@ sp_in = function(ff, gmtoff=NULL){
         xx = load_stack_file(ff[which(ff$name%in%f),], gmtoff, l)
       }else{ # load the file
         offs = gmtoff$offs[which(gmtoff$dnld_date==sub(".*_(.*)_.*\\..*", "\\1", f))]
-        xx = load_file(ff$datapath[which(ff$name==f)], offs, l)
+        xx = load_file(ff$datapath[which(ff$name==f)], offs, l, f)
       }
       wash_ts(xx, dup_action="average", samp_freq="15M")
     })
