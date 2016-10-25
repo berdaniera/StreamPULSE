@@ -7,7 +7,7 @@ output$datadnld = renderUI({
   sites = gsub("raw/(.*_.*)_.*\\.Rda","\\1",dnld$ff)
   tagList(
     selectizeInput("todnld", NULL, sites, selected = NULL, multiple = TRUE, options = NULL),
-    actionButton("dnldit","Download your data!", icon=icon("download"), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff")
+    downloadButton("dnldit","Download your data!", icon=icon("download"), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff")
   )
 })
 
