@@ -15,15 +15,19 @@ awssave = function(ff){
     gmtoff <- tibble(dnld_date,offs=0)
   }
   #  return(list(err="<font style='color:#FF0000;'><i>Region not recognized, please contact Aaron at aaron.berdanier@gmail.com.</i></font>"))  # check for a single site, error message if not
-  sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
+  if(any(ff$name %in% origfiles$fname)) item_rm_files(datOrig, files=ff$name[which(ff$name %in% origfiles$fname)]) # remove pre-existing files
+  item_append_files(datOrig, ff$datapath)
+  item_rename_files(datOrig, names=basename(ff$datapath), new_names=ff$name)
+  # On AWS
+  # sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
   data = sp_in(ff, gmtoff)  # transform original data
   list(site=site, dates=dnld_date, data=data)
 }
 
 spin = reactiveValues(d=NULL) # placeholder for input data
-# colnms = acolnms = list()
-# s3save(colnms, acolnms, object="meta/colnms.Rda",bucket="streampulse")
-s3load(object='meta/colnms.Rda',bucket='streampulse') # load list of colnms data
+# On AWS
+# s3load(object='meta/colnms.Rda',bucket='streampulse') # load list of colnms data
+load(file.path(tmpwebfile,'colnms.Rda'))
 coln = reactiveValues(ms=colnms,all=acolnms) # placeholder for column names
 
 definecolumns = function(cn){
@@ -112,8 +116,10 @@ observeEvent(input$definecols,{
   coln$all[[spin$d$site]] = colnames(spin$d$data)
   acolnms = coln$all
   tfn = tempfile()
-  save(colnms, acolnms, file=tfn)
-  put_object(file=tfn, object="meta/colnms.Rda",bucket="streampulse")
+  save(colnms, acolnms, file=file.path(tmpwebfile,'colnms.Rda'))
+  item_replace_files(web, files=file.path(tmpwebfile,'colnms.Rda'))
+  # On AWS
+  # put_object(file=tfn, object="meta/colnms.Rda",bucket="streampulse")
   # s3save(colnms,acolnms,object="meta/colnms.Rda",bucket="streampulse")
 })
 
@@ -121,13 +127,21 @@ observeEvent(input$uploadaws, {
   colnms = coln$ms[[spin$d$site]]
   dd = spin$d$data %>% rename_(.dots=setNames(colnms$old, colnms$new)) %>% select_(.dots=colnms$new)
   newpoints = sum(!is.na(dd[,-1]))
-  ddate = as.character(sort(as.Date(spin$d$dates), decreasing=TRUE))[1] # get latest date
-  sitedate = paste0(spin$d$site,"_",ddate)
-  paste0(spin$d$site,"_",ddate,".Rda")
+  # ddate = as.character(sort(as.Date(spin$d$dates), decreasing=TRUE))[1] # get latest date
+  sitedate = paste0(spin$d$site,"_",Sys.Date(),"_",gsub(".*file(.*)","\\1",tempfile()))
   assign(sitedate, dd)
-  tfn = tempfile()
-  save(list=c(sitedate), file=tfn)
-  put_object(file=tfn, object=paste0("raw/",sitedate,".Rda"), bucket="streampulse")
+  # On AWS
+  # tfn = tempfile()
+  # save(list=c(sitedate), file=tfn)
+  # put_object(file=tfn, object=paste0("raw/",sitedate,".Rda"), bucket="streampulse")
+  # CSV on SB
+  # write_csv(get(sitedate), path=paste0(tmpwebfile,"/",sitedate,".csv"))
+  # item_append_files(datRaw, files=paste0(tmpwebfile,"/",sitedate,".csv"))
+  # Rda on SB
+
+  save(list=c(sitedate), file=paste0(tdatf,"/",sitedate,".Rda")) # save locally
+  item_append_files(datRaw, files=paste0(tdatf,"/",sitedate,".Rda")) # store in SB
+  file.remove(dir(tdatf, full.names=TRUE)) # remove locally
   # s3save(get(sitedate), object=paste0("raw/",sitedate,".Rda"), bucket="streampulse")
   cat(newpoints, sep="\n", file="datapoints.txt", append=TRUE) # add new data points to list
   output$uploadhandle = renderUI(HTML(paste("Thanks! Added",newpoints,"new data points.")))

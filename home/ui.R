@@ -78,7 +78,7 @@ body <- dashboardBody(
       #   p("Select the site(s) that you'd like to access. You can choose multiple sites. This will download a .csv file with the raw data."),
       #   uiOutput('datadnld')
       # ),
-      box(title="Data levels", width=4, dataTableOutput("table"))
+      box(title="Data levels", width=6, dataTableOutput("datatable"))
     ),
     tabItem(tabName = "model",
       h2("Modeler interface"),

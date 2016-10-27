@@ -2,24 +2,31 @@ library(DT)
 require(shiny)
 require(shinydashboard)
 library('aws.s3')
-library(rdrop2)
+# library(rdrop2)
 library(e1071)
 library(dplyr)
 library(tidyr)
 library(readr)
+library(sbtools)
 library(ggplot2)
 cbPalette = c("#333333", "#E69F00", "#337ab7", "#009E73", "#56B4E9", "#009E73", "#666666", "#739E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 #plot(seq(1:length(cbPalette)),pch=20,col=cbPalette,cex=5)
-dto = readRDS("droptoken.rds")
+# dto = readRDS("droptoken.rds")
+authenticate_sb(Sys.getenv("SB_LOGIN"),Sys.getenv("SB_PASS")) # login with renviron data
 source("spFns.R")
+web = item_get("580f9ec1e4b0f497e796009b") # SB folder with SP web data
+datOrig = item_get("580f9ef5e4b0f497e79600a0") # SB folder with original datalogger files
+datRaw = item_get("580f9f0be4b0f497e79600a4") # SB folder with munged raw data files
+origfiles = item_list_files(datOrig)
+rawfiles = item_list_files(datRaw)
 
-mda <- data.frame(Level=c("Level 0","Level 1A","Level 1B","Level 2","Level 3"),
-                  Description=c("Unprocessed sensor data","Processed data (with quality flags)","Quality filtered data from flags in level 1A (and gap-filled?)","Derived variables","Model output"),
-                  Storage=c("AWS","CUAHSI HIS","ScienceBase","ScienceBase","ScienceBase"))
-
-updatestab <- data.frame(Date=c('2016-10-25','2016-09-06','2016-09-03','2016-07-08','2016-07-01'),Up=c("Download option available for raw data","QA/QC interface linked with data upload","SOP documents linked in","Dashboard online, accepting file uploads","Dashboard created"))
-
-s3load('meta/streampulseusers.Rdata',bucket='streampulse') # load user dataset
+tdatf = tempfile() # temporary data folder
+dir.create(tdatf)
+tmpwebfile = tempfile() # temporary web folder
+dir.create(tmpwebfile)
+item_file_download(web, dest_dir=tmpwebfile, overwrite_file=TRUE)
+load(file.path(tmpwebfile,'spusers.Rda'))
+# s3load('meta/streampulseusers.Rdata',bucket='streampulse') # load user dataset
 # drop_get(path="streampulseusers.Rdata",local_file=file.path(tempdir(),"spusers.Rdata"),dtoken=dto,overwrite=TRUE) # getting rda file
 # load(file.path(tempdir(),"spusers.Rdata")) # load the Rda file
 
@@ -63,6 +70,13 @@ server <- function(input, output, session) {
   # # # all flags and tags for a site
   # allfnt = reactiveValues(aflags=NULL,atags=NULL)
 
+  datatab <- data.frame(Level=c("Level 0","Level 1A","Level 1B","Level 2","Level 3","Level 4"),
+                    Description=c("Unprocessed sensor data","Calibrated raw data","Quality-checked (and maybe gap-filled?) data","Derived variables","Raw model output","Derived model output"),
+                    Storage=c("ScienceBase (public?)","CUAHSI (public)","ScienceBase","ScienceBase","ScienceBase","SB"),
+                    Example=c("Water pressure (kPa)","Water depth (m)","Interpolated water depth (m)","Discharge (m3/s)","Metabolic flux (gO2/m2/d)","Metabolic flux (kgO2/d)"))
+  updatestab <- data.frame(Date=c('2016-10-25','2016-09-06','2016-09-03','2016-07-08','2016-07-01'),
+    Up=c("Download option available for raw data","QA/QC interface linked with data upload","SOP documents linked in","Dashboard online, accepting file uploads","Dashboard created"))
+
   output$useBox <- renderValueBox({ valueBox(length(users$user), "Users", icon = icon("users")) })
   nobs <- floor(sum(read_csv("datapoints.txt",col_names="n",col_types=cols()))/1000)
   # nobs <- 0
@@ -70,7 +84,7 @@ server <- function(input, output, session) {
   output$modBox <- renderValueBox({ valueBox(0, "Models run", icon = icon("cloud")) })
   output$updatetable <- renderDataTable({updatestab},
     options = list(paging = FALSE,searching=FALSE,ordering=FALSE),escape=FALSE,style="bootstrap",selection="none")
-  output$table <- renderDataTable({mda},
+  output$datatable <- renderDataTable({datatab},
     options = list(paging = FALSE,searching=FALSE,ordering=FALSE),escape=FALSE,style="bootstrap",selection="none")
 
   output$loginbox <- renderUI(login)

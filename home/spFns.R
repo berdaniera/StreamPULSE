@@ -146,7 +146,7 @@ get_gmtoff = function(lat, lng, dnld_date, dst=TRUE){
 ### DATA MANAGEMENT
 # Snap timestamps to the closest interval
 snap_ts = function(x, samp_freq, nearest=FALSE){
-  # x is a date-time vector to be snapped
+  # x is a POSIX date-time vector to be snapped
   # freq is the frequency of observations as a string
   #   containing the number of units and the unit (S,M,H,D)
   #   e.g., '15M', '1H', '3D', '66S'
