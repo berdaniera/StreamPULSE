@@ -16,8 +16,6 @@ awssave = function(ff){
   }
   #  return(list(err="<font style='color:#FF0000;'><i>Region not recognized, please contact Aaron at aaron.berdanier@gmail.com.</i></font>"))  # check for a single site, error message if not
   if(any(ff$name %in% origfiles$fname)) item_rm_files(datOrig, files=ff$name[which(ff$name %in% origfiles$fname)]) # remove pre-existing files
-  print(origfiles)
-  print(ff)
   item_append_files(datOrig, ff$datapath)
   item_rename_files(datOrig, names=basename(ff$datapath), new_names=ff$name)
   # On AWS
