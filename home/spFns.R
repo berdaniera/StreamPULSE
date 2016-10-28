@@ -43,15 +43,18 @@ check_ts = function(x, samp_freq=NULL){
     "Missing days:",missingdays,"\n")
 }
 
-# f = grep("NC_Eno_.*_HA.csv",list.files("/home/aaron/Documents/Data/toup"),value=T)
-# f = paste0("/home/aaron/Documents/Data/toup/",f)
-# f = f[1]
+f = grep("NC_Eno_.*_HA.csv",list.files("/home/aaron/Documents/Data/toup"),value=T)
+f = paste0("/home/aaron/Documents/Data/toup/",f)
+f = f[1]
+setwd("/home/aaron/Documents/Data/toup")
 
 ### DATA LOADING
 # Read Hobo data .csv
 read_hobo = function(f, fnm){
   f1 = read_csv(f, skip=1, col_types = cols())
-  f1 = f1[,-grep("Coupler|File|Host|Connected|Attached|Stopped",colnames(f1))]
+  if(any(grepl("Coupler|File|Host|Connected|Attached|Stopped",colnames(f1)))){
+    f1 = f1[,-grep("Coupler|File|Host|Connected|Attached|Stopped",colnames(f1))]
+  }
   # f1 = f1[,!grepl("Coupler|File|Stopped",colnames(f1))]
   # parse column names
   m = regexpr("\\,.*",colnames(f1),perl=T)
