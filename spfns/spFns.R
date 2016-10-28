@@ -46,7 +46,7 @@ check_ts = function(x, samp_freq=NULL){
 # Read Hobo data .csv
 read_hobo = function(f){
   f1 = read_csv(f, skip=1, col_types = cols())
-  f1 = f1[,-grep("Coupler|File|Stopped",colnames(f1))]
+  f1 = f1[,-grep("Coupler|File|Host|Connected|Attached|Stopped",colnames(f1))]
   # parse column names
   m = regexpr("\\,.*",colnames(f1),perl=T)
   uu = sapply(strsplit(regmatches(colnames(f1),m)," "), function(x) x[2]) # get units
@@ -211,12 +211,13 @@ wash_ts = function(x, dup_action=c("average","drop"), samp_freq=NULL, dt_colname
 
 # Fold the data together into one data frame
 fold_ts = function(...){
-  if(!is.list(...)){ ll = list(...) }else{ ll = (...) }
-  if(!all(sapply(ll,function(x) colnames(x)[1]=="DateTime"))){
-    print("Please clean all data sets before running merge_ts()")
+  if(!is.list(...) & length(...)>1){
+     ll = list(...)
+     x = Reduce(function(df1,df2) full_join(df1,df2,by="DateTime"), ll)
+  }else{
+    x = (...)
   }
   cat("Your data are cleaned.\n")
-  x = Reduce(function(df1,df2) full_join(df1,df2,by="DateTime"), ll)
   arrange(x, DateTime)
 }
 
