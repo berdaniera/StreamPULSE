@@ -43,8 +43,8 @@ check_ts = function(x, samp_freq=NULL){
     "Missing days:",missingdays,"\n")
 }
 
-# f = grep("NC_Eno_.*_HA.csv",list.files("/home/aaron/Documents/Data/toup"),value=T)
-# f = paste0("/home/aaron/Documents/Data/toup/",f)
+# f = grep("NC_Eno_.*",list.files("/home/aaron/Documents/Data/toup"),value=T)
+# fx = paste0("/home/aaron/Documents/Data/toup/",f)
 # f = f[1]
 # setwd("/home/aaron/Documents/Data/toup")
 

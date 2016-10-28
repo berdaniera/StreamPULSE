@@ -1,4 +1,6 @@
 awssave = function(ff){
+  if(class(ff$name)=="factor") ff$name = as.character(ff$name)
+  if(class(ff$datapath)=="factor") ff$datapath = as.character(ff$datapath)
   state = c("AZ","FL","NC","WI","PR")
   stlat = c(34, 30, 37, 43, 18)
   stlng = c(-111.5, -82.5, -79, -89.5, -66)
@@ -7,11 +9,11 @@ awssave = function(ff){
   dnld_date = unique(sapply(x, function(y) y[3]))
   if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
   sttt = substr(site,1,2)
-  if(!any(grepl(sttt,state))){ # if it is a core site, get gmtoff
+  if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
     lat <- stlat[grep(sttt,state)]
     lng <- stlng[grep(sttt,state)]
     gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=FALSE)
-  }else{ offset = 0
+  }else{
     gmtoff <- tibble(dnld_date,offs=0)
   }
   #  return(list(err="<font style='color:#FF0000;'><i>Region not recognized, please contact Aaron at aaron.berdanier@gmail.com.</i></font>"))  # check for a single site, error message if not
@@ -58,7 +60,6 @@ definecolumns = function(cn){
 
 # Load data
 observe({ if(!is.null(input$awsFile)){
-  spin$d <- awssave(input$awsFile)
   xx = capture.output( spin$d <- awssave(input$awsFile) ) # get the data
   output$spinupstatus = renderUI(HTML(paste(xx,collapse="<br>")))
   if("err" %in% names(spin$d)){
