@@ -218,11 +218,11 @@ wash_ts = function(x, dup_action=c("average","drop"), samp_freq=NULL, dt_colname
 
 # Fold the data together into one data frame
 fold_ts = function(...){
-  if(!is.list(...) & length(...)>1){
-     ll = list(...)
+  if(!is.list(...){ ll = list(...) }else{ ll = (...) }
+  if(length(ll)>1){
      x = Reduce(function(df1,df2) full_join(df1,df2,by="DateTime_UTC"), ll)
   }else{
-    x = (...)
+    x = ll[[1]]
   }
   # cat("Your data are cleaned.\n")
   arrange(x, DateTime_UTC)
