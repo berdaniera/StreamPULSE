@@ -17,7 +17,7 @@ awssave = function(ff){
   #  return(list(err="<font style='color:#FF0000;'><i>Region not recognized, please contact Aaron at aaron.berdanier@gmail.com.</i></font>"))  # check for a single site, error message if not
   if(any(ff$name %in% origfiles$fname)) item_rm_files(datOrig, files=ff$name[which(ff$name %in% origfiles$fname)]) # remove pre-existing files
   item_append_files(datOrig, ff$datapath)
-  item_rename_files(datOrig, names=basename(ff$datapath), new_names=ff$name)
+  item_rename_files(datOrig, names=basename(ff$datapath)[which(!ff$name %in% origfiles$fname)], new_names=ff$name[which(!ff$name %in% origfiles$fname)])
   # On AWS
   # sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
   data = sp_in(ff, gmtoff)  # transform original data
