@@ -46,7 +46,9 @@ check_ts = function(x, samp_freq=NULL){
 # Read Hobo data .csv
 read_hobo = function(f){
   f1 = read_csv(f, skip=1, col_types = cols())
-  f1 = f1[,-grep("Coupler|File|Host|Connected|Attached|Stopped",colnames(f1))]
+  if(any(grepl("Coupler|File|Host|Connected|Attached|Stopped",colnames(f1)))){
+    f1 = f1[,-grep("Coupler|File|Host|Connected|Attached|Stopped",colnames(f1))]
+  }
   # parse column names
   m = regexpr("\\,.*",colnames(f1),perl=T)
   uu = sapply(strsplit(regmatches(colnames(f1),m)," "), function(x) x[2]) # get units
