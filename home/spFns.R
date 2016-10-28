@@ -218,7 +218,7 @@ wash_ts = function(x, dup_action=c("average","drop"), samp_freq=NULL, dt_colname
 
 # Fold the data together into one data frame
 fold_ts = function(...){
-  if(!is.list(...){ ll = list(...) }else{ ll = (...) }
+  if(!is.list(...)){ ll = list(...) }else{ ll = (...) }
   if(length(ll)>1){
      x = Reduce(function(df1,df2) full_join(df1,df2,by="DateTime_UTC"), ll)
   }else{
