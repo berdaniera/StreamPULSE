@@ -1,14 +1,18 @@
-awssave = function(ff){
-  if(class(ff$name)=="factor") ff$name = as.character(ff$name)
-  if(class(ff$datapath)=="factor") ff$datapath = as.character(ff$datapath)
+awssave = function(){
+  if(class(input$uploadFile$name)=="factor") input$uploadFile$name = as.character(input$uploadFile$name)
+  if(class(input$uploadFile$datapath)=="factor") input$uploadFile$datapath = as.character(input$uploadFile$datapath)
   state = c("AZ","FL","NC","WI","PR")
   stlat = c(34, 30, 37, 43, 18)
   stlng = c(-111.5, -82.5, -79, -89.5, -66)
-  x = strsplit(ff$name,"_")
+  x = strsplit(input$uploadFile$name,"_")
   site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
   dnld_date = unique(sapply(x, function(y) y[3]))
   if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
-  # if(useSB){
+  if(useSB){
+    if(any(input$uploadFile$name %in% origfiles$fname)) item_rm_files(datOrig, files=input$uploadFile$name[which(input$uploadFile$name %in% origfiles$fname)]) # remove pre-existing files
+    item_append_files(datOrig, files=input$uploadFile$datapath)
+    item_rename_files(datOrig, names=basename(input$uploadFile$datapath), new_names=input$uploadFile$name)
+  }
   #   if(any(ff$name %in% origfiles$fname)) item_rm_files(datOrig, files=ff$name[which(ff$name %in% origfiles$fname)]) # remove pre-existing files
   #   item_append_files(datOrig, files=ff$datapath)
   #   item_rename_files(datOrig, names=basename(ff$datapath), new_names=ff$name)
@@ -24,7 +28,7 @@ awssave = function(ff){
   }else{
     gmtoff <- tibble(dnld_date,offs=0)
   }
-  data = sp_in(ff, gmtoff)  # transform original data
+  data = sp_in(input$uploadFile, gmtoff)  # transform original data
   list(site=site, dates=dnld_date, data=data)
 }
 
@@ -66,12 +70,9 @@ definecolumns = function(cn){
 }
 
 # Load data
-observe({ if(!is.null(input$awsFile)){
-  if(any(input$awsFile$name %in% origfiles$fname)) item_rm_files(datOrig, files=input$awsFile$name[which(input$awsFile$name %in% origfiles$fname)]) # remove pre-existing files
-  item_append_files(datOrig, files=input$awsFile$datapath)
-  item_rename_files(datOrig, names=basename(input$awsFile$datapath), new_names=input$awsFile$name)
-  # spin$d <- awssave(input$awsFile)
-  xx = capture.output( spin$d <- awssave(input$awsFile) ) # get the data
+observe({ if(!is.null(input$uploadFile)){
+  # spin$d <- awssave(input$uploadFile)
+  xx = capture.output( spin$d <- awssave() ) # get the data
   output$spinupstatus = renderUI(HTML(paste(xx,collapse="<br>")))
   if("err" %in% names(spin$d)){
     output$uploadhandle = renderUI( HTML(spin$d$err) )

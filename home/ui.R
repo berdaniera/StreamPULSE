@@ -38,7 +38,7 @@ body <- dashboardBody(
           "<br><u>Leveraged sites</u> need to upload <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>pre-processed data</a>",
           "with one header row, the first column with a UTC Date-Time, and data columns separated with commas.")),
           br(),br(),
-          fileInput('awsFile', NULL, multiple=TRUE),
+          fileInput('uploadFile', NULL, multiple=TRUE),
           br(),
           uiOutput('uploadhandle')
         ),
