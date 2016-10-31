@@ -22,9 +22,9 @@ dir.create(tmpwebfile)
 useSB = TRUE
 if(useSB){
   web = item_get("580f9ec1e4b0f497e796009b") # SB folder with SP web data
-  # datOrig = item_get("580f9ef5e4b0f497e79600a0") # SB folder with original datalogger files
+  datOrig = item_get("580f9ef5e4b0f497e79600a0") # SB folder with original datalogger files
   datRaw = item_get("580f9f0be4b0f497e79600a4") # SB folder with munged raw data files
-  # origfiles = item_list_files(datOrig)
+  origfiles = item_list_files(datOrig)
   rawfiles = item_list_files(datRaw)
   item_file_download(web, dest_dir=tmpwebfile, overwrite_file=TRUE)
   load(file.path(tmpwebfile,'spusers.Rda'))
