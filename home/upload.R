@@ -14,7 +14,7 @@ awssave = function(ff){
   #   item_rename_files(datOrig, names=basename(ff$datapath), new_names=ff$name)
   # }else{
   # On AWS
-    sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
+    # sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
   # }
   sttt = substr(site,1,2)
   if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
@@ -67,6 +67,9 @@ definecolumns = function(cn){
 
 # Load data
 observe({ if(!is.null(input$awsFile)){
+  if(any(input$awsFile$name %in% origfiles$fname)) item_rm_files(datOrig, files=input$awsFile$name[which(input$awsFile$name %in% origfiles$fname)]) # remove pre-existing files
+  item_append_files(datOrig, files=input$awsFile$datapath)
+  item_rename_files(datOrig, names=basename(input$awsFile$datapath), new_names=input$awsFile$name)
   # spin$d <- awssave(input$awsFile)
   xx = capture.output( spin$d <- awssave(input$awsFile) ) # get the data
   output$spinupstatus = renderUI(HTML(paste(xx,collapse="<br>")))
