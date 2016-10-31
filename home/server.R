@@ -14,19 +14,23 @@ cbPalette = c("#333333", "#E69F00", "#337ab7", "#009E73", "#56B4E9", "#009E73", 
 # dto = readRDS("droptoken.rds")
 authenticate_sb(Sys.getenv("SB_LOGIN"),Sys.getenv("SB_PASS")) # login with renviron data
 source("spFns.R")
-web = item_get("580f9ec1e4b0f497e796009b") # SB folder with SP web data
-datOrig = item_get("580f9ef5e4b0f497e79600a0") # SB folder with original datalogger files
-datRaw = item_get("580f9f0be4b0f497e79600a4") # SB folder with munged raw data files
-origfiles = item_list_files(datOrig)
-rawfiles = item_list_files(datRaw)
 
 tdatf = tempfile() # temporary data folder
 dir.create(tdatf)
 tmpwebfile = tempfile() # temporary web folder
 dir.create(tmpwebfile)
-item_file_download(web, dest_dir=tmpwebfile, overwrite_file=TRUE)
-load(file.path(tmpwebfile,'spusers.Rda'))
-# s3load('meta/streampulseusers.Rdata',bucket='streampulse') # load user dataset
+useSB = TRUE
+if(useSB){
+  web = item_get("580f9ec1e4b0f497e796009b") # SB folder with SP web data
+  # datOrig = item_get("580f9ef5e4b0f497e79600a0") # SB folder with original datalogger files
+  datRaw = item_get("580f9f0be4b0f497e79600a4") # SB folder with munged raw data files
+  # origfiles = item_list_files(datOrig)
+  rawfiles = item_list_files(datRaw)
+  item_file_download(web, dest_dir=tmpwebfile, overwrite_file=TRUE)
+  load(file.path(tmpwebfile,'spusers.Rda'))
+}else{
+  s3load('meta/streampulseusers.Rda',bucket='streampulse') # load user dataset
+}
 # drop_get(path="streampulseusers.Rdata",local_file=file.path(tempdir(),"spusers.Rdata"),dtoken=dto,overwrite=TRUE) # getting rda file
 # load(file.path(tempdir(),"spusers.Rdata")) # load the Rda file
 

@@ -108,7 +108,7 @@ sp_in = function(site, dnld_date, gmtoff=NULL){
   logger = unique(sub("(.*_)(.*)\\..*", "\\2", ff)) # which data loggers are represented?
   if(length(ff)==1){ # only one file, load it regularly
     xx = load_file(ff, gmtoff$offs, logger)
-    x = wash_ts(xx, dup_action="average", samp_freq="15M")
+    x = list(wash_ts(xx, dup_action="average", samp_freq="15M"))
   }else{ # multiple files
     x = lapply(logger,function(l){ # files from each logger
       f = grep(l, ff, value=TRUE)
@@ -213,9 +213,9 @@ wash_ts = function(x, dup_action=c("average","drop"), samp_freq=NULL, dt_colname
 
 # Fold the data together into one data frame
 fold_ts = function(...){
-  if(!is.list(...)){ ll = list(...) }else{ ll = (...) }
+  ll = (...)
   if(length(ll)>1){
-     x = Reduce(function(df1,df2) full_join(df1,df2,by="DateTime_UTC"), ll)
+     x = Reduce(function(df1,df2) full_join(df1,df2,by="DateTime"), ll)
   }else{
     x = ll[[1]]
   }

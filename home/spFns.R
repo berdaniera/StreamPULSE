@@ -112,7 +112,7 @@ sp_in = function(ff, gmtoff=NULL){
   if(length(ff$name)==1){ # only one file, load it regularly
     cat(paste0(ff$datapath,"\n"))
     xx = load_file(ff$datapath, gmtoff$offs, logger, ff$name)
-    x = wash_ts(xx, dup_action="average", samp_freq="15M")
+    x = list(wash_ts(xx, dup_action="average", samp_freq="15M"))
   }else{ # multiple files
     x = lapply(logger,function(l){ # files from each logger
       f = grep(l, ff$name, value=TRUE)
@@ -218,7 +218,7 @@ wash_ts = function(x, dup_action=c("average","drop"), samp_freq=NULL, dt_colname
 
 # Fold the data together into one data frame
 fold_ts = function(...){
-  if(!is.list(...)){ ll = list(...) }else{ ll = (...) }
+  ll = (...)
   if(length(ll)>1){
      x = Reduce(function(df1,df2) full_join(df1,df2,by="DateTime_UTC"), ll)
   }else{
