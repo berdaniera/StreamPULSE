@@ -38,8 +38,10 @@ coln = reactiveValues(ms=colnms,all=acolnms) # placeholder for column names
 
 definecolumns = function(cn){
   output$uploadhandle = renderUI({
-    HTML(paste0("<h3 class='box-title'>Match your columns with the codes below.</h3>If you do not have a given column, just leave it blank. <i>Note:</i> You only need to do this once (unless the column names in your files change).<br>",
-    "<i>Your columns not here?</i> Email <a href='mailto:aaron.berdanier@gmail.com'>Aaron</a><br>",
+    HTML(paste0("<h3 class='box-title'>Match your columns with the codes below.</h3>",
+    "If you do not have a given column, just leave it blank. ",
+    "<i>Note:</i> You only need to do this once (unless the column names in your files change). ",
+    "<i>Your columns not here?</i> Email <a href='mailto:aaron.berdanier@gmail.com'>Aaron</a>.<br>",
       selectizeInput("DateTime_UTC", "DateTime_UTC", choices=cn),
       selectizeInput("DO_mgL", "DO_mgL", choices=cn),
       selectizeInput("fDOsat_frac", "fDOsat_frac", choices=cn),
