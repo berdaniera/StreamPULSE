@@ -1,6 +1,6 @@
 checkpkg = function(pkg){
   if(!pkg %in% rownames(installed.packages())) install.packages(pkg)
-  library(pkg, character.only=TRUE)
+  suppressPackageStartupMessages(library(pkg, character.only=TRUE))
 }
 checkpkg("zoo")
 checkpkg("tibble")
