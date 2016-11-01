@@ -20,6 +20,8 @@ output$datadnld = renderUI({
     downloadButton("dnldit","Download your data!", class="color: #fff; background-color: #337ab7; border-color: #fff")
   )
 })
+# input = list(todnld=c("NC_Eno","NC_Mud"))
+# dnld = list(ff=b$fname)
 
 if(useSB){
   output$dnldit = downloadHandler(
@@ -32,12 +34,12 @@ if(useSB){
       }
       file.remove(dir(tdatf, full.names=TRUE)) # remove locally
       lf = ls()
-      objs = sapply(input$todnld, function(sf) grep(sf, lf, value=TRUE))
+      objs = unlist(sapply(input$todnld, function(sf) grep(sf, lf, value=TRUE)))
       tmpl = lapply(objs, function(o){
-        get(o) %>% mutate(Site=sub("^(.*_.*)_[0-9]*-.*\\.Rda","\\1",o)) %>%
+        get(o) %>% mutate(Site=sub("^(.*_.*)_[0-9]*-.*","\\1",o)) %>%
         gather(variable, value, -DateTime_UTC, -Site) %>% filter(!is.na(value))
       })
-      tmpd = Reduce(function(df1,df2) bind_rows(df1,df2), tmpl) %>% distinct() # stack them up
+      tmpd = Reduce(function(df1,df2) bind_rows(df1,df2), tmpl) %>% distinct() %>% arrange(Site, variable, DateTime_UTC) # stack them up
       write_csv(tmpd, file)
     }
   )
