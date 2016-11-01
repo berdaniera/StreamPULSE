@@ -37,13 +37,16 @@ definecolumns = function(cn){
 }
 
 sbprocess = function(ff){
+  updfiles = read_csv("upfiles.txt",col_names="n",col_types=cols())
+  if(all(ff$name %in% updfiles$n)) return(list(err="<font style='color:#FF0000;'><i>All of those files were already uploaded.</i></font>"))  # check if all uploaded
+  if(any(ff$name %in% updfiles$n)) ff = ff[-which(ff$name %in% updfiles$n),] # remove files already uploaded
   state = c("AZ","FL","NC","WI","PR")
   stlat = c(34, 30, 37, 43, 18)
   stlng = c(-111.5, -82.5, -79, -89.5, -66)
   x = strsplit(ff$name,"_")
   site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
   dnld_date = unique(sapply(x, function(y) y[3]))
-  if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
+  if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site
   # upload zip file to SB
   tupf = tempfile()
   dir.create(tupf)
@@ -52,6 +55,7 @@ sbprocess = function(ff){
   tzipf = paste0(tupf,"/",site,"_",Sys.Date(),".zip") # temporary data folder
   zip(tzipf, ff$datapath, extras="-j")
   item_append_files(sbopath, files=tzipf, session=asb) # into the originals folder
+  write_csv(tibble(ff$name), path="upfiles.txt", append=TRUE) # add the uploaded files to the uplist
   # do the processing
   sttt = substr(site,1,2)
   if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
