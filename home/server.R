@@ -76,8 +76,8 @@ server <- function(input, output, session) {
 
   datatab <- data.frame(Level=c("Level 0","Level 1A","Level 1B","Level 2","Level 3","Level 4"),
                     Description=c("Unprocessed sensor data","Calibrated raw data","Quality-checked (and maybe gap-filled?) data","Derived variables","Raw model output","Derived model output"),
-                    Storage=c("ScienceBase (public?)","CUAHSI (public)","ScienceBase","ScienceBase","ScienceBase","SB"),
-                    Example=c("Water pressure (kPa)","Water depth (m)","Interpolated water depth (m)","Discharge (m3/s)","Metabolic flux (gO2/m2/d)","Metabolic flux (kgO2/d)"))
+                    Storage=c("ScienceBase","CUAHSI (public)","ScienceBase","ScienceBase","ScienceBase","ScienceBase"),
+                    Example=c("Water pressure (kPa)","Water depth (m)","Flagged water depth (m)","Discharge (m3/s)","Metabolic flux (gO2/m2/d)","Metabolic flux (kgO2/d)"))
   updatestab <- data.frame(Date=c('2016-10-25','2016-09-06','2016-09-03','2016-07-08','2016-07-01'),
     Up=c("Download option available for raw data","QA/QC interface linked with data upload","SOP documents linked in","Dashboard online, accepting file uploads","Dashboard created"))
 

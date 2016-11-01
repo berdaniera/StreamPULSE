@@ -82,8 +82,7 @@ body <- dashboardBody(
     ),
     tabItem(tabName = "model",
       h2("Modeler interface"),
-      p("Later this fall we will have an area for visualizing model output."),
-      p("We may also implement a section to 'request' model runs with specific attributes.")
+      p("Next year we will have an area for working with model output.")
     ),
     tabItem(tabName = "sop",
       HTML('<iframe src="https://drive.google.com/embeddedfolderview?id=0B7rFlnRNN7_dUW8tc1h5REZfQk0#list" style="width:100%; height:600px; border:0;"></iframe>')
