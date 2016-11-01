@@ -28,7 +28,7 @@ if(useSB){
       for(sf in input$todnld){
         f = grep(sf, dnld$ff, value=TRUE)
         gf = item_file_download(sbrpath, names=f, destinations=file.path(tdatf,f), overwrite_file=TRUE) # save locally
-        load(gf) # load locally
+        sapply(gf,load,.GlobalEnv) # load locally
       }
       file.remove(dir(tdatf, full.names=TRUE)) # remove locally
       lf = ls()
