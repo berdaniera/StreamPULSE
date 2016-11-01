@@ -13,8 +13,8 @@ definecolumns = function(cn){
     "<i>Note:</i> You only need to do this once (unless the column names in your files change). ",
     "<i>Your columns not here?</i> Email <a href='mailto:aaron.berdanier@gmail.com'>Aaron</a>.<br>",
       selectizeInput("DateTime_UTC", "DateTime_UTC", choices=cn),
-      selectizeInput("DO_mgL", "DO_mgL", choices=cn),
-      selectizeInput("fDOsat_frac", "fDOsat_frac", choices=cn),
+      selectizeInput("DO_mg-L", "DO_mg-L", choices=cn),
+      selectizeInput("satDO_mg-l", "satDO_mg-L", choices=cn),
       selectizeInput("WaterTemp_C", "WaterTemp_C", choices=cn),
       selectizeInput("AirTemp_C", "AirTemp_C", choices=cn),
       selectizeInput("WaterPres_kPa", "WaterPres_kPa", choices=cn),
@@ -24,11 +24,12 @@ definecolumns = function(cn){
       selectizeInput("fDOM_frac", "fDOM_frac", choices=cn),
       selectizeInput("Turbidity_mV", "Turbidity_mV", choices=cn),
       selectizeInput("Turbidity_NTU", "Turbidity_NTU", choices=cn),
-      selectizeInput("Nitrate_mgL", "Nitrate_mgL", choices=cn),
-      selectizeInput("SpecCond_mscm", "SpecCond_mscm", choices=cn),
+      selectizeInput("Nitrate_mg-L", "Nitrate_mg-L", choices=cn),
+      selectizeInput("SpecCond_mS-cm", "SpecCond_mS-cm", choices=cn),
+      selectizeInput("SpecCond_uS-cm", "SpecCond_uS-cm", choices=cn),
       selectizeInput("Depth_m", "Depth_m", choices=cn),
       selectizeInput("Light_lux", "Light_lux", choices=cn),
-      selectizeInput("Light_par", "Light_par", choices=cn),
+      selectizeInput("Light_PAR", "Light_PAR", choices=cn),
       selectizeInput("CO2_ppm", "CO2_ppm", choices=cn),
       actionButton("definecols","Set columns", width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff")
     ))
@@ -80,7 +81,7 @@ observeEvent(input$uploadFile, {
       if(all(coln$all[[site]]==colnames(spin$d$data))){
         output$uploadhandle = renderUI({ HTML(paste0(
             actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff"),
-            "<br>Need to redefine your columns? ",actionLink("redefinecols", paste("Click here to manually reassign columns for",site))
+            "<br><br><center>Need to redefine your columns? ",actionLink("redefinecols", paste("Click here to manually reassign columns for",site),"</center>")
           ))
         })
       }else{
@@ -94,8 +95,8 @@ observeEvent(input$uploadFile, {
 
 observeEvent(input$definecols,{
   newv = c("DateTime_UTC",
-  "DO_mgL",
-  "fDOsat_frac",
+  "DO_mg-L",
+  "satDO_mg-L",
   "WaterTemp_C",
   "AirTemp_C",
   "WaterPres_kPa",
@@ -106,14 +107,15 @@ observeEvent(input$definecols,{
   "Turbidity_mV",
   "Turbidity_NTU",
   "Nitrate_mgL",
-  "SpecCond_mscm",
+  "SpecCond_mS-cm",
+  "SpecCond_uS-cm",
   "Depth_m",
   "Light_lux",
-  "Light_par",
+  "Light_PAR",
   "CO2_ppm")
   oldv = c(input$DateTime_UTC,
-  input$DO_mgL,
-  input$fDOsat_frac,
+  input$DO_mg-L,
+  input$satDO_mg-L,
   input$WaterTemp_C,
   input$AirTemp_C,
   input$WaterPres_kPa,
@@ -123,11 +125,12 @@ observeEvent(input$definecols,{
   input$fDOM_frac,
   input$Turbidity_mV,
   input$Turbidity_NTU,
-  input$Nitrate_mgL,
-  input$SpecCond_mscm,
+  input$Nitrate_mg-L,
+  input$SpecCond_mS-cm,
+  input$SpecCond_uS-cm,
   input$Depth_m,
   input$Light_lux,
-  input$Light_par,
+  input$Light_PAR,
   input$CO2_ppm)
   coln$ms[[spin$d$site]] = tibble(new=newv[which(oldv!="")],old=oldv[which(oldv!="")])
   colnms = coln$ms
@@ -143,7 +146,7 @@ observeEvent(input$definecols,{
   site = spin$d$site
   output$uploadhandle = renderUI({ HTML(paste0(
       actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff"),
-      "<br>Need to redefine your columns? ",actionLink("redefinecols", paste("Click here to manually reassign columns for",site))
+      "<br><br><center>Need to redefine your columns? ",actionLink("redefinecols", paste("Click here to manually reassign columns for",site),"</center>")
     ))
   })
 })
