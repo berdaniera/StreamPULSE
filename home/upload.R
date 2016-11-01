@@ -80,8 +80,10 @@ observeEvent(input$uploadFile, {
     if( site%in%names(coln$ms) & length(colnames(spin$d$data))==length(coln$all[[site]]) ){
       if(all(coln$all[[site]]==colnames(spin$d$data))){
         output$uploadhandle = renderUI({ HTML(paste0(
-            actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff"),
-            "<br><br><center>Need to redefine your columns? ",actionLink("redefinecols", paste("Click here to manually reassign columns for",site),"</center>")
+            actionButton("uploadaws", paste("Upload data for",site), width="100%",
+              style="color: #fff; background-color: #337ab7; border-color: #fff"),
+            "<br><br><center>Need to redefine your columns? ",
+            actionLink("redefinecols", paste("Click here to manually reassign columns for",site)),"</center>"
           ))
         })
       }else{
@@ -145,8 +147,10 @@ observeEvent(input$definecols,{
   }
   site = spin$d$site
   output$uploadhandle = renderUI({ HTML(paste0(
-      actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff"),
-      "<br><br><center>Need to redefine your columns? ",actionLink("redefinecols", paste("Click here to manually reassign columns for",site),"</center>")
+      actionButton("uploadaws", paste("Upload data for",site), width="100%",
+        style="color: #fff; background-color: #337ab7; border-color: #fff"),
+      "<br><br><center>Need to redefine your columns? ",
+      actionLink("redefinecols", paste("Click here to manually reassign columns for",site)),"</center>"
     ))
   })
 })
