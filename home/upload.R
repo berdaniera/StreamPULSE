@@ -181,7 +181,7 @@ observeEvent(input$uploadaws, {
     put_object(file=tfn, object=paste0("raw/",sitedate,".Rda"), bucket="streampulse")
   }
   cat(newpoints, sep="\n", file="datapoints.txt", append=TRUE) # add new data points to list
-  output$uploadhandle = renderUI(HTML(paste("Thanks! Added",newpoints,"new data points.")))
+  output$uploadhandle = renderUI(HTML(paste("Thanks! Added",newpoints,"new data points for",spin$d$site)))
 })
 
 
