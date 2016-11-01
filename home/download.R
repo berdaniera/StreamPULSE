@@ -1,6 +1,6 @@
 # MODIFY DOWNLOAD TO PULL FROM SCIENCEBASE
 if(useSB){
-  b = item_list_files(datRaw)
+  b = item_list_files("580f9f0be4b0f497e79600a4")
   dnld = reactiveValues(ff=b$fname)
 }else{
   b = get_bucket('streampulse')
@@ -11,7 +11,7 @@ if(useSB){
 
 output$datadnld = renderUI({
   if(useSB){
-    sites = gsub("^(.*_.*)_[1-9].*\\.Rda","\\1",dnld$ff)
+    sites = sub("^(.*_.*)_[0-9]*-.*\\.Rda","\\1",dnld$ff)
   }else{
     sites = gsub("raw/(.*_.*)_.*\\.Rda","\\1",dnld$ff)
   }

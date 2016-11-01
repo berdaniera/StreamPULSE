@@ -10,9 +10,11 @@ library(readr)
 library(sbtools)
 library(ggplot2)
 cbPalette = c("#333333", "#E69F00", "#337ab7", "#009E73", "#56B4E9", "#009E73", "#666666", "#739E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+ac = function(x) as.character(x)
 #plot(seq(1:length(cbPalette)),pch=20,col=cbPalette,cex=5)
 # dto = readRDS("droptoken.rds")
-authenticate_sb(Sys.getenv("SB_LOGIN"),Sys.getenv("SB_PASS")) # login with renviron data
+if(is_logged_in()) session_logout()
+asb = authenticate_sb(Sys.getenv("SB_LOGIN"), Sys.getenv("SB_PASS")) # login with renviron data
 source("spFns.R")
 
 tdatf = tempfile() # temporary data folder
@@ -22,10 +24,8 @@ dir.create(tmpwebfile)
 useSB = TRUE
 if(useSB){
   web = item_get("580f9ec1e4b0f497e796009b") # SB folder with SP web data
-  datOrig = item_get("580f9ef5e4b0f497e79600a0") # SB folder with original datalogger files
+  dorig = item_get("580f9ef5e4b0f497e79600a0") # SB folder with original datalogger files
   datRaw = item_get("580f9f0be4b0f497e79600a4") # SB folder with munged raw data files
-  origfiles = item_list_files(datOrig)
-  rawfiles = item_list_files(datRaw)
   item_file_download(web, dest_dir=tmpwebfile, overwrite_file=TRUE)
   load(file.path(tmpwebfile,'spusers.Rda'))
 }else{

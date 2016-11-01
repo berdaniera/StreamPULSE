@@ -1,25 +1,19 @@
-awssave = function(){
-  if(class(input$uploadFile$name)=="factor") input$uploadFile$name = as.character(input$uploadFile$name)
-  if(class(input$uploadFile$datapath)=="factor") input$uploadFile$datapath = as.character(input$uploadFile$datapath)
+awssave = function(ff){
   state = c("AZ","FL","NC","WI","PR")
   stlat = c(34, 30, 37, 43, 18)
   stlng = c(-111.5, -82.5, -79, -89.5, -66)
-  x = strsplit(input$uploadFile$name,"_")
+  x = strsplit(ff$name,"_")
   site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
   dnld_date = unique(sapply(x, function(y) y[3]))
   if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
-  if(useSB){
-    if(any(input$uploadFile$name %in% origfiles$fname)) item_rm_files(datOrig, files=input$uploadFile$name[which(input$uploadFile$name %in% origfiles$fname)]) # remove pre-existing files
-    item_append_files(datOrig, files=input$uploadFile$datapath)
-    item_rename_files(datOrig, names=basename(input$uploadFile$datapath), new_names=input$uploadFile$name)
-  }
-  #   if(any(ff$name %in% origfiles$fname)) item_rm_files(datOrig, files=ff$name[which(ff$name %in% origfiles$fname)]) # remove pre-existing files
-  #   item_append_files(datOrig, files=ff$datapath)
-  #   item_rename_files(datOrig, names=basename(ff$datapath), new_names=ff$name)
-  # }else{
-  # On AWS
-    # sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
+  # if(useSB){
+  #   origf = item_list_files(dorig)$fname
+  #   # file.rename(from=ac(ff$datapath), to=paste0(dirname(ac(ff$datapath)),"/",ac(ff$name)))
+  #   # ff$datapath = paste0(dirname(ac(ff$datapath)),"/",ac(ff$name))
+  #   if(!any(ac(ff$name) %in% origf)) item_append_files(dorig, files=ac(ff$datapath[-which(ac(ff$name) %in% origf)]))
   # }
+  # On AWS
+  sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
   sttt = substr(site,1,2)
   if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
     lat <- stlat[grep(sttt,state)]
@@ -28,7 +22,7 @@ awssave = function(){
   }else{
     gmtoff <- tibble(dnld_date,offs=0)
   }
-  data = sp_in(input$uploadFile, gmtoff)  # transform original data
+  data = sp_in(ff, gmtoff)  # transform original data
   list(site=site, dates=dnld_date, data=data)
 }
 
@@ -70,23 +64,33 @@ definecolumns = function(cn){
 }
 
 # Load data
-observe({ if(!is.null(input$uploadFile)){
-  # spin$d <- awssave(input$uploadFile)
-  xx = capture.output( spin$d <- awssave() ) # get the data
+observeEvent(input$uploadFile, {
+  ff = input$uploadFile
+  # tupf = tempfile() # temporary data folder
+  # dir.create(tupf)
+  # file.copy(unique(dirname(ac(ff$datapath))),tupf,recursive=TRUE)
+  # file.rename(from=ac(ff$datapath), to=ac(paste0(dirname(ac(ff$datapath)),"/",ff$name)))
+  # ff$datapath = paste0(tupf,"/",ff$name)
+  # spin$d <- awssave(ff)
+  xx = capture.output( spin$d <- awssave(ff) ) # get the data
   output$spinupstatus = renderUI(HTML(paste(xx,collapse="<br>")))
   if("err" %in% names(spin$d)){
     output$uploadhandle = renderUI( HTML(spin$d$err) )
   }else{
     site = spin$d$site
-    if(!(site %in% names(coln$all))) coln$all[[site]]=NULL
     # check if the site has column name definitions or if any columns have changed
-    if( !(site %in% names(coln$ms)) | all(coln$all[[site]]!=colnames(spin$d$data)) ){
-      definecolumns(c("",colnames(spin$d$data)))
+    if(!(site %in% names(coln$all))) coln$all[[site]]=NULL
+    if( site%in%names(coln$ms) & length(colnames(spin$d$data))==length(coln$all[[site]]) ){
+      if(all(coln$all[[site]]==colnames(spin$d$data))){
+        output$uploadhandle = renderUI( actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff") )
+      }else{
+        definecolumns(c("",colnames(spin$d$data)))
+      }
     }else{
-      output$uploadhandle = renderUI( actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff") )
+      definecolumns(c("",colnames(spin$d$data)))
     }
   }
-} })
+})
 
 observeEvent(input$definecols,{
   newv = c("DateTime_UTC",
@@ -132,7 +136,7 @@ observeEvent(input$definecols,{
   # tfn = tempfile()
   save(colnms, acolnms, file=file.path(tmpwebfile,'colnms.Rda'))
   if(useSB){
-    item_replace_files(web, files=file.path(tmpwebfile,'colnms.Rda'))
+    item_replace_files(sb_id=web, files=file.path(tmpwebfile,'colnms.Rda'))
   }else{  # On AWS
     put_object(file=file.path(tmpwebfile,'colnms.Rda'), object="meta/colnms.Rda",bucket="streampulse")
   }
@@ -151,7 +155,7 @@ observeEvent(input$uploadaws, {
   # Rda on SB
   if(useSB){
     save(list=c(sitedate), file=paste0(tdatf,"/",sitedate,".Rda")) # save locally
-    item_append_files(datRaw, files=paste0(tdatf,"/",sitedate,".Rda")) # store in SB
+    item_append_files(sb_id=datRaw, files=paste0(tdatf,"/",sitedate,".Rda")) # store in SB
     file.remove(dir(tdatf, full.names=TRUE)) # remove locally
   }else{  # On AWS
     tfn = tempfile()
