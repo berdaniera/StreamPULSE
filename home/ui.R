@@ -70,9 +70,14 @@ body <- dashboardBody(
     ),
     tabItem(tabName = "download",
       h2("Data download"),
-      box(title = "Pull down the latest raw data", width=6, status = "success",
-        p("Select the site(s) that you'd like to access. You can choose multiple sites. This will download a .csv file with the raw data."),
-        uiOutput('datadnld')
+      column(width=6,
+        box(title = "Pull down the latest raw data", width=12, status = "success",
+          p("Select the site(s) that you'd like to access. You can choose multiple sites. This will download a .csv file with the raw data."),
+          uiOutput('datadnld')
+        ),
+        box(title="How to work with this data", width=12,
+          includeMarkdown('dnldcode.md')
+        )
       ),
       # box(title = "Pull down the latest raw data", width=6, status = "success",
       #   p("Select the site(s) that you'd like to access. You can choose multiple sites. This will download a .csv file with the raw data."),
