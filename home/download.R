@@ -34,7 +34,7 @@ if(useSB){
       lf = ls()
       objs = sapply(input$todnld, function(sf) grep(sf, lf, value=TRUE))
       tmpl = lapply(objs, function(o){
-        get(o) %>% mutate(Site=gsub("(.*_.*)_[1-9].*","\\1",o)) %>%
+        get(o) %>% mutate(Site=sub("^(.*_.*)_[0-9]*-.*\\.Rda","\\1",o)) %>%
         gather(variable, value, -DateTime_UTC, -Site) %>% filter(!is.na(value))
       })
       tmpd = Reduce(function(df1,df2) bind_rows(df1,df2), tmpl) %>% distinct() # stack them up
@@ -51,7 +51,7 @@ if(useSB){
       }
       lf = ls()
       objs = sapply(input$todnld, function(sf) grep(sf, lf, value=TRUE))
-      tmpl = lapply(objs, function(o) get(o) %>% mutate(Site=gsub("(.*_.*)_.*","\\1",o)) %>% gather(variable, value, -DateTime_UTC, -Site) )
+      tmpl = lapply(objs, function(o) get(o) %>% mutate(Site=gsub("^(.*_.*)_[0-9]*-.*\\.Rda","\\1",o)) %>% gather(variable, value, -DateTime_UTC, -Site) )
       tmpd = Reduce(function(df1,df2) bind_rows(df1,df2), tmpl) # stack them up
       write_csv(tmpd, file)
     }

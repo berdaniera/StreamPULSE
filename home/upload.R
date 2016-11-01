@@ -1,31 +1,3 @@
-# awssave = function(ff){
-#   state = c("AZ","FL","NC","WI","PR")
-#   stlat = c(34, 30, 37, 43, 18)
-#   stlng = c(-111.5, -82.5, -79, -89.5, -66)
-#   x = strsplit(ff$name,"_")
-#   site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
-#   dnld_date = unique(sapply(x, function(y) y[3]))
-#   if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
-#   # if(useSB){
-#   #   origf = item_list_files(dorig)$fname
-#   #   # file.rename(from=ac(ff$datapath), to=paste0(dirname(ac(ff$datapath)),"/",ac(ff$name)))
-#   #   # ff$datapath = paste0(dirname(ac(ff$datapath)),"/",ac(ff$name))
-#   #   if(!any(ac(ff$name) %in% origf)) item_append_files(dorig, files=ac(ff$datapath[-which(ac(ff$name) %in% origf)]))
-#   # }
-#   # On AWS
-#   sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
-#   sttt = substr(site,1,2)
-#   if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
-#     lat <- stlat[grep(sttt,state)]
-#     lng <- stlng[grep(sttt,state)]
-#     gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=FALSE)
-#   }else{
-#     gmtoff <- tibble(dnld_date,offs=0)
-#   }
-#   data = sp_in(ff, gmtoff)  # transform original data
-#   list(site=site, dates=dnld_date, data=data)
-# }
-
 spin = reactiveValues(d=NULL) # placeholder for input data
 if(useSB){
   load(file.path(tmpwebfile,'colnms.Rda'))
@@ -63,42 +35,40 @@ definecolumns = function(cn){
   })
 }
 
+sbprocess = function(ff){
+  state = c("AZ","FL","NC","WI","PR")
+  stlat = c(34, 30, 37, 43, 18)
+  stlng = c(-111.5, -82.5, -79, -89.5, -66)
+  x = strsplit(ff$name,"_")
+  site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
+  dnld_date = unique(sapply(x, function(y) y[3]))
+  if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
+  # upload zip file to SB
+  tupf = tempfile()
+  dir.create(tupf)
+  file.copy(ff$datapath, paste0(tupf,"/",ff$name))
+  ff$datapath = paste0(tupf,"/",ff$name)
+  tzipf = paste0(tupf,"/",site,"_",Sys.Date(),".zip") # temporary data folder
+  zip(tzipf, ff$datapath, extras="-j")
+  item_append_files(sbopath, files=tzipf, session=asb) # into the originals folder
+  # do the processing
+  sttt = substr(site,1,2)
+  if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
+    lat <- stlat[grep(sttt,state)]
+    lng <- stlng[grep(sttt,state)]
+    gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=FALSE)
+  }else{
+    gmtoff <- tibble(dnld_date,offs=0)
+  }
+  data = sp_in(ff, gmtoff)  # transform original data
+  file.remove(dir(tupf, full.names=TRUE)) # remove locally
+  list(site=site, dates=dnld_date, data=data)
+}
+
 # Load data
 observeEvent(input$uploadFile, {
   ff = input$uploadFile
-  # save to SB
-  tupf = tempfile() # temporary data folder
-  dir.create(tupf)
-  sapply(1:nrow(ff), function(x) file.copy(ff$datapath[x],paste0(tupf,"/",ff$name[x])) )
-  ff$datapath = paste0(tupf,"/",ff$name)
-  prevfiles = item_list_files(sbopath)$fname
-  if(any(!ff$name %in% prevfiles)){
-    fins = ff$datapath[which(!ff$name %in% prevfiles)]
-    item_append_files(sbopath, files=fins, session=asb) # into original folder
-  }
-
-  sbprocess = function(ff){
-    state = c("AZ","FL","NC","WI","PR")
-    stlat = c(34, 30, 37, 43, 18)
-    stlng = c(-111.5, -82.5, -79, -89.5, -66)
-    x = strsplit(ff$name,"_")
-    site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
-    dnld_date = unique(sapply(x, function(y) y[3]))
-    if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
-    sttt = substr(site,1,2)
-    if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
-      lat <- stlat[grep(sttt,state)]
-      lng <- stlng[grep(sttt,state)]
-      gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=FALSE)
-    }else{
-      gmtoff <- tibble(dnld_date,offs=0)
-    }
-    data = sp_in(ff, gmtoff)  # transform original data
-    list(site=site, dates=dnld_date, data=data)
-  }
-
-  xx = capture.output( spin$d <- sbprocess(ff) ) # get the data
-  # xx = capture.output( spin$d <- awssave(ff) ) # get the data
+  xx = capture.output( spin$d <- sbprocess(input$uploadFile) ) # get the data
   output$spinupstatus = renderUI(HTML(paste(xx,collapse="<br>")))
   if("err" %in% names(spin$d)){
     output$uploadhandle = renderUI( HTML(spin$d$err) )
@@ -108,7 +78,11 @@ observeEvent(input$uploadFile, {
     if(!(site %in% names(coln$all))) coln$all[[site]]=NULL
     if( site%in%names(coln$ms) & length(colnames(spin$d$data))==length(coln$all[[site]]) ){
       if(all(coln$all[[site]]==colnames(spin$d$data))){
-        output$uploadhandle = renderUI( actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff") )
+        output$uploadhandle = renderUI({ HTML(paste0(
+            actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff"),
+            "<br>Need to redefine your columns? ",actionLink("redefinecols", paste("Click here to manually reassign columns for",site))
+          ))
+        })
       }else{
         definecolumns(c("",colnames(spin$d$data)))
       }
@@ -167,7 +141,16 @@ observeEvent(input$definecols,{
     put_object(file=file.path(tmpwebfile,'colnms.Rda'), object="meta/colnms.Rda",bucket="streampulse")
   }
   site = spin$d$site
-  output$uploadhandle = renderUI( actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff") )
+  output$uploadhandle = renderUI({ HTML(paste0(
+      actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff"),
+      "<br>Need to redefine your columns? ",actionLink("redefinecols", paste("Click here to manually reassign columns for",site))
+    ))
+  })
+})
+
+
+observeEvent(input$redefinecols,{
+  definecolumns(c("",colnames(spin$d$data)))
 })
 
 observeEvent(input$uploadaws, {
@@ -177,10 +160,6 @@ observeEvent(input$uploadaws, {
   # ddate = as.character(sort(as.Date(spin$d$dates), decreasing=TRUE))[1] # get latest date
   sitedate = paste0(spin$d$site,"_",Sys.Date(),"_",gsub(".*file(.*)","\\1",tempfile()))
   assign(sitedate, dd)
-  # CSV on SB
-  # write_csv(get(sitedate), path=paste0(tmpwebfile,"/",sitedate,".csv"))
-  # item_append_files(datRaw, files=paste0(tmpwebfile,"/",sitedate,".csv"))
-  # Rda on SB
   if(useSB){
     save(list=c(sitedate), file=paste0(tdatf,"/",sitedate,".Rda")) # save locally
     item_append_files(sbrpath, files=paste0(tdatf,"/",sitedate,".Rda"), session=asb) # store in SB

@@ -11,7 +11,6 @@ library(sbtools)
 library(ggplot2)
 cbPalette = c("#333333", "#E69F00", "#337ab7", "#009E73", "#56B4E9", "#009E73", "#666666", "#739E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 ac = function(x) as.character(x)
-#plot(seq(1:length(cbPalette)),pch=20,col=cbPalette,cex=5)
 # dto = readRDS("droptoken.rds")
 if(is_logged_in()) session_logout()
 asb = authenticate_sb(Sys.getenv("SB_LOGIN"), Sys.getenv("SB_PASS")) # login with renviron data
@@ -105,13 +104,13 @@ server <- function(input, output, session) {
     }
 
     if(USER$Logged){ # passed login
-      output$loginbox <- renderUI(loginpass)
       source("upload.R",local=TRUE)
       source("download.R",local=TRUE)
       # source("flag.R",local=TRUE)
       userstr <- span("Login successful as ",strong(USER$Name))
       logoutstr <- div(align="right",a(href="/","Log out"))
       loginpass <- box(title = "Logged in!",status="success",solidHeader=TRUE,userstr,logoutstr)
+      output$loginbox <- renderUI(loginpass)
       output$Upload <- renderMenu(
         menuItem("Upload", icon = icon("cloud-upload"),
           menuSubItem("Sensor data", tabName="upload"),
@@ -121,7 +120,6 @@ server <- function(input, output, session) {
       output$Modeler <- renderMenu( menuItem("Modeler", tabName = "model", icon = icon("cubes")) )
       output$SOPs <- renderMenu( menuItem("SOPs", tabName = "sop", icon = icon("file-text-o")) )
       output$fileup <- renderUI( fileInput('file1', NULL, accept = c('text/csv','text/comma-separated-values','text/plain','.csv')) )
-      # output$filesave <- renderUI( fileInput('awsFile', NULL, multiple=TRUE) )
     }
   })
 
