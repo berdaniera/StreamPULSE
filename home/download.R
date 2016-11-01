@@ -1,6 +1,6 @@
 # MODIFY DOWNLOAD TO PULL FROM SCIENCEBASE
 if(useSB){
-  b = item_list_files("580f9f0be4b0f497e79600a4")
+  b = item_list_files(sbrpath)
   dnld = reactiveValues(ff=b$fname)
 }else{
   b = get_bucket('streampulse')
@@ -27,12 +27,8 @@ if(useSB){
     content = function(file) {
       for(sf in input$todnld){
         f = grep(sf, dnld$ff, value=TRUE)
-        gf = item_file_download(datRaw, names=f, destinations=file.path(tdatf,f), overwrite_file=TRUE) # save locally
-        # Rda on SB
+        gf = item_file_download(sbrpath, names=f, destinations=file.path(tdatf,f), overwrite_file=TRUE) # save locally
         load(gf) # load locally
-        # CSV on SB
-        #  tmp = read_csv(gf)
-        #  assign(gsub("(.*)\\.csv","\\1",basename(gf)), tmp)
       }
       file.remove(dir(tdatf, full.names=TRUE)) # remove locally
       lf = ls()
@@ -41,7 +37,7 @@ if(useSB){
         get(o) %>% mutate(Site=gsub("(.*_.*)_[1-9].*","\\1",o)) %>%
         gather(variable, value, -DateTime_UTC, -Site) %>% filter(!is.na(value))
       })
-      tmpd = Reduce(function(df1,df2) bind_rows(df1,df2), tmpl) # stack them up
+      tmpd = Reduce(function(df1,df2) bind_rows(df1,df2), tmpl) %>% distinct() # stack them up
       write_csv(tmpd, file)
     }
   )

@@ -21,14 +21,14 @@ tdatf = tempfile() # temporary data folder
 dir.create(tdatf)
 tmpwebfile = tempfile() # temporary web folder
 dir.create(tmpwebfile)
+sbopath = '58189f15e4b0bb36a4c82017' # original data files
+sbrpath = '58189f03e4b0bb36a4c82014' # raw data files
+sbwpath = "580f9ec1e4b0f497e796009b" # web file path
+item_file_download(sbwpath, dest_dir=tmpwebfile, overwrite_file=TRUE)
+load(file.path(tmpwebfile,'spusers.Rda'))
+
 useSB = TRUE
-if(useSB){
-  web = item_get("580f9ec1e4b0f497e796009b") # SB folder with SP web data
-  dorig = item_get("580f9ef5e4b0f497e79600a0") # SB folder with original datalogger files
-  datRaw = item_get("580f9f0be4b0f497e79600a4") # SB folder with munged raw data files
-  item_file_download(web, dest_dir=tmpwebfile, overwrite_file=TRUE)
-  load(file.path(tmpwebfile,'spusers.Rda'))
-}else{
+if(!useSB){
   s3load('meta/streampulseusers.Rda',bucket='streampulse') # load user dataset
 }
 # drop_get(path="streampulseusers.Rdata",local_file=file.path(tempdir(),"spusers.Rdata"),dtoken=dto,overwrite=TRUE) # getting rda file

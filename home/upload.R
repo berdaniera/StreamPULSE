@@ -1,30 +1,30 @@
-awssave = function(ff){
-  state = c("AZ","FL","NC","WI","PR")
-  stlat = c(34, 30, 37, 43, 18)
-  stlng = c(-111.5, -82.5, -79, -89.5, -66)
-  x = strsplit(ff$name,"_")
-  site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
-  dnld_date = unique(sapply(x, function(y) y[3]))
-  if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
-  # if(useSB){
-  #   origf = item_list_files(dorig)$fname
-  #   # file.rename(from=ac(ff$datapath), to=paste0(dirname(ac(ff$datapath)),"/",ac(ff$name)))
-  #   # ff$datapath = paste0(dirname(ac(ff$datapath)),"/",ac(ff$name))
-  #   if(!any(ac(ff$name) %in% origf)) item_append_files(dorig, files=ac(ff$datapath[-which(ac(ff$name) %in% origf)]))
-  # }
-  # On AWS
-  sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
-  sttt = substr(site,1,2)
-  if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
-    lat <- stlat[grep(sttt,state)]
-    lng <- stlng[grep(sttt,state)]
-    gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=FALSE)
-  }else{
-    gmtoff <- tibble(dnld_date,offs=0)
-  }
-  data = sp_in(ff, gmtoff)  # transform original data
-  list(site=site, dates=dnld_date, data=data)
-}
+# awssave = function(ff){
+#   state = c("AZ","FL","NC","WI","PR")
+#   stlat = c(34, 30, 37, 43, 18)
+#   stlng = c(-111.5, -82.5, -79, -89.5, -66)
+#   x = strsplit(ff$name,"_")
+#   site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
+#   dnld_date = unique(sapply(x, function(y) y[3]))
+#   if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
+#   # if(useSB){
+#   #   origf = item_list_files(dorig)$fname
+#   #   # file.rename(from=ac(ff$datapath), to=paste0(dirname(ac(ff$datapath)),"/",ac(ff$name)))
+#   #   # ff$datapath = paste0(dirname(ac(ff$datapath)),"/",ac(ff$name))
+#   #   if(!any(ac(ff$name) %in% origf)) item_append_files(dorig, files=ac(ff$datapath[-which(ac(ff$name) %in% origf)]))
+#   # }
+#   # On AWS
+#   sapply(1:nrow(ff), function(x) put_object(file=ff$datapath[x], object=paste0("original/",ff$name[x]), bucket="streampulse"))  # upload original data
+#   sttt = substr(site,1,2)
+#   if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
+#     lat <- stlat[grep(sttt,state)]
+#     lng <- stlng[grep(sttt,state)]
+#     gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=FALSE)
+#   }else{
+#     gmtoff <- tibble(dnld_date,offs=0)
+#   }
+#   data = sp_in(ff, gmtoff)  # transform original data
+#   list(site=site, dates=dnld_date, data=data)
+# }
 
 spin = reactiveValues(d=NULL) # placeholder for input data
 if(useSB){
@@ -66,13 +66,39 @@ definecolumns = function(cn){
 # Load data
 observeEvent(input$uploadFile, {
   ff = input$uploadFile
-  # tupf = tempfile() # temporary data folder
-  # dir.create(tupf)
-  # file.copy(unique(dirname(ac(ff$datapath))),tupf,recursive=TRUE)
-  # file.rename(from=ac(ff$datapath), to=ac(paste0(dirname(ac(ff$datapath)),"/",ff$name)))
-  # ff$datapath = paste0(tupf,"/",ff$name)
-  # spin$d <- awssave(ff)
-  xx = capture.output( spin$d <- awssave(ff) ) # get the data
+  # save to SB
+  tupf = tempfile() # temporary data folder
+  dir.create(tupf)
+  sapply(1:nrow(ff), function(x) file.copy(ff$datapath[x],paste0(tupf,"/",ff$name[x])) )
+  ff$datapath = paste0(tupf,"/",ff$name)
+  prevfiles = item_list_files(sbopath)$fname
+  if(any(!ff$name %in% prevfiles)){
+    fins = ff$datapath[which(!ff$name %in% prevfiles)]
+    item_append_files(sbopath, files=fins, session=asb) # into original folder
+  }
+
+  sbprocess = function(ff){
+    state = c("AZ","FL","NC","WI","PR")
+    stlat = c(34, 30, 37, 43, 18)
+    stlng = c(-111.5, -82.5, -79, -89.5, -66)
+    x = strsplit(ff$name,"_")
+    site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
+    dnld_date = unique(sapply(x, function(y) y[3]))
+    if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site, error message if not
+    sttt = substr(site,1,2)
+    if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
+      lat <- stlat[grep(sttt,state)]
+      lng <- stlng[grep(sttt,state)]
+      gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=FALSE)
+    }else{
+      gmtoff <- tibble(dnld_date,offs=0)
+    }
+    data = sp_in(ff, gmtoff)  # transform original data
+    list(site=site, dates=dnld_date, data=data)
+  }
+
+  xx = capture.output( spin$d <- sbprocess(ff) ) # get the data
+  # xx = capture.output( spin$d <- awssave(ff) ) # get the data
   output$spinupstatus = renderUI(HTML(paste(xx,collapse="<br>")))
   if("err" %in% names(spin$d)){
     output$uploadhandle = renderUI( HTML(spin$d$err) )
@@ -136,10 +162,12 @@ observeEvent(input$definecols,{
   # tfn = tempfile()
   save(colnms, acolnms, file=file.path(tmpwebfile,'colnms.Rda'))
   if(useSB){
-    item_replace_files(sb_id=web, files=file.path(tmpwebfile,'colnms.Rda'))
+    item_replace_files(sbwpath, files=file.path(tmpwebfile,'colnms.Rda'), session=asb)
   }else{  # On AWS
     put_object(file=file.path(tmpwebfile,'colnms.Rda'), object="meta/colnms.Rda",bucket="streampulse")
   }
+  site = spin$d$site
+  output$uploadhandle = renderUI( actionButton("uploadaws", paste("Upload data for",site), width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff") )
 })
 
 observeEvent(input$uploadaws, {
@@ -155,7 +183,7 @@ observeEvent(input$uploadaws, {
   # Rda on SB
   if(useSB){
     save(list=c(sitedate), file=paste0(tdatf,"/",sitedate,".Rda")) # save locally
-    item_append_files(sb_id=datRaw, files=paste0(tdatf,"/",sitedate,".Rda")) # store in SB
+    item_append_files(sbrpath, files=paste0(tdatf,"/",sitedate,".Rda"), session=asb) # store in SB
     file.remove(dir(tdatf, full.names=TRUE)) # remove locally
   }else{  # On AWS
     tfn = tempfile()
