@@ -20,8 +20,6 @@ output$datadnld = renderUI({
     downloadButton("dnldit","Download your data!", class="color: #fff; background-color: #337ab7; border-color: #fff")
   )
 })
-# input = list(todnld=c("NC_Eno","NC_Mud"))
-# dnld = list(ff=b$fname)
 
 if(useSB){
   output$dnldit = downloadHandler(
@@ -30,7 +28,7 @@ if(useSB){
       for(sf in input$todnld){
         f = grep(sf, dnld$ff, value=TRUE)
         gf = item_file_download(sbrpath, names=f, destinations=file.path(tdatf,f), overwrite_file=TRUE) # save locally
-        sapply(gf,load,.GlobalEnv) # load locally
+        for(f in gf) load(f) # load locally
       }
       file.remove(dir(tdatf, full.names=TRUE)) # remove locally
       lf = ls()
