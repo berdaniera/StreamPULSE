@@ -114,7 +114,7 @@ server <- function(input, output, session) {
       output$Upload <- renderMenu(
         menuItem("Upload", icon = icon("cloud-upload"),
           menuSubItem("Sensor data", tabName="upload"),
-          menuSubItem("Drop samples")
+          menuSubItem("Grab samples (coming soon)")
       ))
       output$Download <- renderMenu( menuItem("Download", tabName = "download", icon = icon("line-chart")) )
       output$Modeler <- renderMenu( menuItem("Modeler", tabName = "model", icon = icon("cubes")) )

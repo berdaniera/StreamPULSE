@@ -31,7 +31,8 @@ body <- dashboardBody(
     tabItem(tabName = "upload",
       h2("Data upload"),
       fluidRow(
-        box(title = "Upload raw data files", width=6, status = "success",
+        column(6,
+        box(title = "Upload raw data files", width=12, status = "success",
           HTML(paste("Only select files from a single site with each upload (although you can select multiple files from different download dates at the same site).",
           "Before uploading, ensure that files match the <b>REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx</b> format.",
           "<br><br><u>Primary (core/ancillary) sites</u> can upload their raw datalogger files (CS.dat and hobo .csv) or a pre-processed file.",
@@ -42,7 +43,11 @@ body <- dashboardBody(
           br(),
           uiOutput('uploadhandle')
         ),
-        box(title="Upload status", width=4,
+        box(title="Data formatting for leveraged sites", width=12,
+          includeMarkdown('leverageup.md'), collapsible=TRUE, collapsed=TRUE
+        )
+        ),
+        box(title="Upload status", width=6,
           uiOutput('spinupstatus')
         )
           # box(title = "Upload merged data file to CUAHSI", width=4, status = "primary",
