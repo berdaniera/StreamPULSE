@@ -41,8 +41,8 @@ sbprocess = function(ff){
   if(all(ff$name %in% updfiles$n)) return(list(err="<font style='color:#FF0000;'><i>All of those files were already uploaded.</i></font>"))  # check if all uploaded
   if(any(ff$name %in% updfiles$n)) ff = ff[-which(ff$name %in% updfiles$n),] # remove files already uploaded
   state = c("AZ","FL","NC","WI","PR")
-  stlat = c(34, 30, 37, 43, 18)
-  stlng = c(-111.5, -82.5, -79, -89.5, -66)
+  stlat = c(34, 29.9, 37, 43, 18.3)
+  stlng = c(-111.7, -82.3, -79, -89.6, -65.8)
   x = strsplit(ff$name,"_")
   site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
   dnld_date = unique(sapply(x, function(y) y[3]))
