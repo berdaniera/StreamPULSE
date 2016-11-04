@@ -23,7 +23,7 @@ dir.create(tmpwebfile)
 sbopath = '58189f15e4b0bb36a4c82017' # original data files
 sbrpath = '58189f03e4b0bb36a4c82014' # raw data files
 sbwpath = "580f9ec1e4b0f497e796009b" # web file path
-item_file_download(sbwpath, dest_dir=tmpwebfile, overwrite_file=TRUE)
+item_file_download(sbwpath, dest_dir=tmpwebfile, overwrite_file=TRUE, session=asb)
 load(file.path(tmpwebfile,'spusers.Rda'))
 
 useSB = TRUE

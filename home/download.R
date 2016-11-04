@@ -27,7 +27,7 @@ if(useSB){
     content = function(file) {
       for(sf in input$todnld){
         f = grep(sf, dnld$ff, value=TRUE)
-        gf = item_file_download(sbrpath, names=f, destinations=file.path(tdatf,f), overwrite_file=TRUE) # save locally
+        gf = item_file_download(sbrpath, names=f, destinations=file.path(tdatf,f), overwrite_file=TRUE, session=asb) # save locally
         for(f in gf) load(f) # load locally
       }
       file.remove(dir(tdatf, full.names=TRUE)) # remove locally
