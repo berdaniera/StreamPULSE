@@ -1,7 +1,6 @@
-authenticate_sb(Sys.getenv("SB_LOGIN"), Sys.getenv("SB_PASS"))
 # MODIFY DOWNLOAD TO PULL FROM SCIENCEBASE
 if(useSB){
-  b = item_list_files(sbrpath)
+  b = item_list_files(sbrpath, session=asb)
   dnld = reactiveValues(ff=b$fname)
 }else{
   b = get_bucket('streampulse')
