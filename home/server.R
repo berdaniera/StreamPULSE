@@ -30,6 +30,7 @@ useSB = TRUE
 if(!useSB){
   s3load('meta/streampulseusers.Rda',bucket='streampulse') # load user dataset
 }
+
 # drop_get(path="streampulseusers.Rdata",local_file=file.path(tempdir(),"spusers.Rdata"),dtoken=dto,overwrite=TRUE) # getting rda file
 # load(file.path(tempdir(),"spusers.Rdata")) # load the Rda file
 
