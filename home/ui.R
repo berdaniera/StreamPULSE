@@ -37,7 +37,7 @@ body <- dashboardBody(
           "Before uploading, ensure that files match the <b>REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx</b> format.",
           "<br><br><u>Primary (core/ancillary) sites</u> can upload their raw datalogger files (CS.dat and hobo .csv) or a pre-processed file.",
           "<br><u>Leveraged sites</u> need to upload <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>pre-processed data</a>",
-          "with one header row, the first column with a UTC Date-Time, and data columns separated with commas.")),
+          "with one header row, the first column with a UTC Date-Time, and data columns separated with commas. <b>See the tab below</b>.")),
           br(),br(),
           fileInput('uploadFile', NULL, multiple=TRUE),
           br(),

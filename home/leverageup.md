@@ -35,7 +35,7 @@ where
 - `REGIONID` is the name of your region (US: FIPS state code; Internaitonal: ISO 3166-1 alpha-2 code)
 - `SITEID` is your chosen unique site name (only alphanumeric characters, any length you want)
 - `YYYY-MM-DD` is the data download date (or the latest date in the timeseries), and
-- `XX.csv` tells our data script to treat this as an ancillary site
+- `XX.csv` tells our data script to treat this as a leveraged site
 
 ### Date formatting help
 
