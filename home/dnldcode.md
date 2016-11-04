@@ -14,4 +14,4 @@ library(dplyr) # for munging the data
 datEno <- dat %>% filter(Site="NC_Eno") %>% select(-Site)
 ```
 
-More data examples to come soon...
+More data examples to come soon... and in the near future there will be greater access options for calibrated data.

@@ -88,7 +88,12 @@ body <- dashboardBody(
       #   p("Select the site(s) that you'd like to access. You can choose multiple sites. This will download a .csv file with the raw data."),
       #   uiOutput('datadnld')
       # ),
-      box(title="Data levels", width=6, dataTableOutput("datatable"))
+      column(width=6,
+        box(title="Data levels", width=12, dataTableOutput("datatable")),
+        box(title="Original data files", width=12,
+          HTML(paste("Our original data files are stored on ScienceBase and can be <a href='https://www.sciencebase.gov/catalog/item/57b1cefde4b0fc09fab1e218'>accessed here</a>."))
+        )
+      )
     ),
     tabItem(tabName = "model",
       h2("Modeler interface"),
