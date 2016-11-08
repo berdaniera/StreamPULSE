@@ -42,14 +42,14 @@ body <- dashboardBody(
           )
         ),
         column(6,
+          box(title="Upload status", width=12,
+            uiOutput('spinupstatus')
+          ),
           box(title="Instructions for core sites", width=12,
             includeMarkdown('coreup.md'), collapsible=TRUE, collapsed=TRUE
           ),
           box(title="Instructions for leveraged sites", width=12,
             includeMarkdown('leverageup.md'), collapsible=TRUE, collapsed=TRUE
-          ),
-          box(title="Upload status", width=12,
-            uiOutput('spinupstatus')
           )
         )
           # box(title = "Upload merged data file to CUAHSI", width=4, status = "primary",
