@@ -7,12 +7,12 @@ Name your upload file -- `REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx` -- where
 - `SITEID` is your unique site name,
 - `YYYY-MM-DD` is the download date, and
 - `LOGGERID.xxx` is the logger routing code:
-⋅⋅* `CS.dat`: CR1000 data file
-⋅⋅* `HD.csv`: Hobo DO logger
-⋅⋅* `HW.csv`: Hobo water pressure logger
-⋅⋅* `HA.csv`: Hobo air pressure logger
-⋅⋅* `HP.csv`: Hobo light pendant logger
-⋅⋅* `XX.csv`: Calibrated and formatted data
+  * `CS.dat`: CR1000 data file
+  * `HD.csv`: Hobo DO logger
+  * `HW.csv`: Hobo water pressure logger
+  * `HA.csv`: Hobo air pressure logger
+  * `HP.csv`: Hobo light pendant logger
+  * `XX.csv`: Calibrated and formatted data
 
 ### Calibrated and formatted data
 
