@@ -10,8 +10,8 @@ The minimum set of variables for upload are:
 - Date-Time (UTC)
 - Water Temperature (°C)
 - DO (mg/L)
-- Saturation DO (mg/L) *OR* Air Pressure (kPa)
-- Depth (m) *OR* Discharge (m3/s) *OR* Velocity (m/s)
+- Saturation DO (mg/L) *and/or* Air Pressure (kPa)
+- Depth (m) *and/or* Discharge (m3/s) *and/or* Velocity (m/s)
 
 Bonus variables include:
 - Light, PAR (μmol/m2/s)
