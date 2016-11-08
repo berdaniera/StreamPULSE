@@ -1,4 +1,4 @@
-_StreamPULSE core sites_ can upload raw datalogger files as well as pre-formatted data.
+_StreamPULSE core sites_ can upload raw datalogger files and/or pre-formatted data.
 
 ### File naming
 
@@ -21,7 +21,7 @@ You can upload raw data (from the datalogger) *and/or* calibrated data (e.g., tu
 If you modify a datalogger file to generate calibrated and derived variables, you must save it as a `.csv` with:
 - the `_XX.csv` extension,
 - one header row followed directly by data rows, one row per timestamp,
-- the first column as a Date-Time stamp **in your local timezone (no DST)** formatted as: `YYYY-MM-DD HH:MM:SS`, and
+- the first column as a Date-Time stamp converted to UTC standard time and formatted as: `YYYY-MM-DD HH:MM:SS`, and
 - additional columns for each data variable.
 
 ### Variables
@@ -54,10 +54,12 @@ Date-time stamps can be challenging to format.
 
 If you are using `R` you can create a 'POSIXct' object. Below is an example converting a date-time string to the correct format:
 ```R
-datetimeorig <- "8/31/2016 13:24:16" # can also be a vector
+datetimeorig <- "8/31/16 13:24:16" # can also be a vector
 # In POSIX, we 1. designate the format to match the original date time
-#     and 2. specify the timezone...
-dtval <- as.POSIXct(datetimeorig, format="%m/%d/%Y %H:%M:%S", tz="EST")
+#     and 2. specify the timezone... a full list can be viewed by running OlsonNames()
+dtval <- as.POSIXct(datetimeorig, format="%m/%d/%y %H:%M:%S", tz="EST")
+# Then, just switch the display to UTC
+attr(dtval,"tzone") <- "UTC"
 ```
 The `as.POSIXct()` function can convert any date-time format and any time zone. For details on all of the format structure codes, [see the R documentation](https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html).
 

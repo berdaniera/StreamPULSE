@@ -43,10 +43,10 @@ Date-time stamps can be challenging to format.
 
 If you are using `R` you can create a 'POSIXct' object. Below is an example converting a date-time string to the correct format:
 ```R
-datetimeorig <- "8/31/2016 13:24:16" # can also be a vector
-# In POSIX, we designate the format to match the original date time
-#     and specify the timezone of the original date time...
-dtval <- as.POSIXct(datetimeorig, format="%m/%d/%Y %H:%M:%S", tz="EST")
+datetimeorig <- "8/31/16 13:24:16" # can also be a vector
+# In POSIX, we 1. designate the format to match the original date time
+#     and 2. specify the timezone... a full list can be viewed by running OlsonNames()
+dtval <- as.POSIXct(datetimeorig, format="%m/%d/%y %H:%M:%S", tz="EST")
 # Then, just switch the display to UTC
 attr(dtval,"tzone") <- "UTC"
 # The output will be 2016-08-31T18:24:16Z
