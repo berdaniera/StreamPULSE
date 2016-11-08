@@ -9,12 +9,10 @@ The minimum set of variables for upload are:
 - Date-Time (UTC)
 - Water Temperature (°C)
 - DO (mg/L)
-- Saturation DO (mg/L) (OR air pressure)
-- Depth (m)
+- Saturation DO (mg/L) *OR* Air Pressure (kPa)
+- Depth (m) *OR* Discharge (m3/s) *OR* Velocity (m/s)
 
 Bonus variables include:
-- Discharge (m3/s)
-- Velocity (m/s)
 - Light, PAR (μmol/m2/s)
 - Light, lux
 - Specific Conductivity (mS/cm or μS/cm)
@@ -33,12 +31,10 @@ Bonus variables include:
 
 ### File naming
 
-Name your upload file with this convention: `REGIONID_SITEID_YYYY-MM-DD_XX.csv`
+Name your upload file with this convention: `REGIONID_SITEID.csv`
 where
-- `REGIONID` is the name of your region ([US: FIPS state code](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code); [International: ISO 3166-1 alpha-2 code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2))
-- `SITEID` is your chosen unique site name (only alphanumeric characters, any length you want)
-- `YYYY-MM-DD` is the data download date (or the latest date in the timeseries), and
-- `XX.csv` tells our data script to treat this as a leveraged site
+- `REGIONID` is the name of your region (US: [FIPS state code](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code); International: [ISO 3166-1 alpha-2 code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)), and
+- `SITEID` is your chosen unique site name (only alphanumeric characters, any length you want).
 
 ### Date formatting help
 
