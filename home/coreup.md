@@ -65,7 +65,7 @@ The `as.POSIXct()` function can convert any date-time format and any time zone. 
 
 ### Saving files
 
-Exporting a `.csv` from R is easy with the `readr` package, which saves files without row names and preserves the ISO date-time format (GOOD!):
+Exporting a `.csv` from R is easy with the `readr` package, which saves files without row names and preserves the ISO date-time format:
 ```R
 library(readr)
 write_csv(datatable, path="NC_Eno_2016-10-13_XX.csv")

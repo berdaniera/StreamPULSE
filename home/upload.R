@@ -75,7 +75,7 @@ coresites = paste(sitedb$REGIONID,sitedb$SITEID,sep="_")
 sbprocess = function(ff){
   ffregex = "[A-Z]{2}_.*_[0-9]{4}-[0-9]{2}-[0-9]{2}_[A-Z]{2}.[a-zA-Z]{3}" # core sites
   ffregex2 = "[A-Z]{2}_.*_[0-9]{4}-[0-9]{2}-[0-9]{2}.csv" # leveraged sites
-  if(!all(sapply(ff$name, grepl, pattern=paste(ffregex,ffregex2,sep="|")))) return(list(err="<font style='color:#FF0000;'><i>Please format your filenames as: REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx</i></font>"))  # check if all uploaded
+  if(!all(sapply(ff$name, grepl, pattern=paste(ffregex,ffregex2,sep="|")))) return(list(err="<font style='color:#FF0000;'><i>Please name your files with the specified format.</i></font>"))  # check if all uploaded
   updfiles = read_csv("upfiles.txt",col_names="n",col_types=cols()) # files already uploaded
   if(all(ff$name %in% updfiles$n)) return(list(err="<font style='color:#FF0000;'><i>All of those files were already uploaded.</i></font>"))  # check if all uploaded
   if(any(ff$name %in% updfiles$n)) ff = ff[-which(ff$name %in% updfiles$n),] # remove files already uploaded
@@ -89,9 +89,10 @@ sbprocess = function(ff){
     lng = sitedb$LNG[grep(site,coresites)]
     gmtoff = get_gmtoff(lat, lng, dnld_date, dst=FALSE)
     data = try(sp_in(ff, gmtoff), silent=TRUE)  # transform original data
-    if(class(data)=="try-error") return(list(err="<font style='color:#FF0000;'><i>There was an error processing your data, please email <a href='aaron.berdanier@gmail.com'>Aaron</a> with a copy of the files you wish to upload.</i></font>"))
+    if(class(data)=="try-error") return(list(err="<font style='color:#FF0000;'><i>There was an error processing your data, please <a href='mailto:aaron.berdanier@gmail.com'>email Aaron</a> with a copy of the files you wish to upload.</i></font>"))
   }else{ # leveraged site
     if(nrow(ff)>1) return(list(err="<font style='color:#FF0000;'><i>Please merge your data files prior to upload.</i></font>"))  # check for a single site
+    if(!grepl(ffregex2,ff$name)) return(list(err="<font style='color:#FF0000;'><i>This is not recognized as a core site. Please check your files and <a href='mailto:aaron.berdanier@gmail.com'>email Aaron</a> if you have questions.</i></font>"))  # check for a single site
     site = paste0(site,"_L") # designate as leveraged site
     data = sp_in_lev(ff)
   }
