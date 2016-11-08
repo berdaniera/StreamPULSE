@@ -16,13 +16,14 @@ getsitedeets = function(){
       "<h3 class='box-title'>Data sharing</h3>",
       "Our core sites are sharing data with the public through a <a href='https://www.cuahsi.org/'>CUAHSI</a> database. ",
       "You can choose to <i>also participate in public data sharing</i> <u>or</u> <i>keep your data private within StreamPULSE</i> ",
-      "(which means that other StreamPULSE members can access your data)."
+      "(which means that other StreamPULSE members can access your data).",
       selectizeInput("datasharing","Data sharing agreement", choices=c("Public","StreamPULSE only")),
       actionButton("addleveraged","Continue", width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff")
     ))
   })
 }
 
+#item_replace_files("58189ef0e4b0bb36a4c82012",files='SPsites.csv', session=asb)
 item_file_download("58189ef0e4b0bb36a4c82012",names='SPsites.csv',destinations=file.path(tmpwebfile,'SPsites.csv'), overwrite_file=TRUE, session=asb)
 allsites = read_csv(file.path(tmpwebfile,'SPsites.csv')) # csv
 

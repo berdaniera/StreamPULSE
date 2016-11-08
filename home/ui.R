@@ -33,9 +33,8 @@ body <- dashboardBody(
       fluidRow(
         column(6,
           box(title = "Upload data files", width=12, status = "success",
-            HTML(paste("Only select files from a single site with each upload. See instructions to the right.<br><br>",
-            "Core sites are those funded by the grant (including ancillary locations). Leveraged sites are those with a different sensor-datalogger array."
-            "Before uploading, ensure that files match the <b>REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx</b> format.")),
+            HTML(paste("Only select files from a single site with each upload. <b>See instructions to the right.</b> ",
+            "<u>Core sites</u> are those funded by the grant (including ancillary locations). <u>Leveraged sites</u> are those with a different sensor-datalogger array.")),
             br(),br(),
             fileInput('uploadFile', NULL, multiple=TRUE),
             br(),
