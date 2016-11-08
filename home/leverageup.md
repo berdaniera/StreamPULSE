@@ -1,4 +1,5 @@
-Leveraged sites (those with a different sensor-logger array than the core sites) need to format the data prior to upload as a `.csv` file with:
+_Leveraged sites_ need to format the data prior to upload as a `.csv` file with:
+- the specified file name (see below),
 - one header row followed directly by data rows, one row per timestamp,
 - the first column as a Date-Time stamp converted to UTC standard time and formatted as: `YYYY-MM-DD HH:MM:SS`, and
 - additional columns for each data variable.
@@ -31,17 +32,20 @@ Bonus variables include:
 
 ### File naming
 
-Name your upload file with this convention: `REGIONID_SITEID.csv`
-where
+Name your upload file -- `REGIONID_SITEID_YYYY-MM-DD.csv` -- where
 - `REGIONID` is the name of your region (US: [FIPS state code](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code); International: [ISO 3166-1 alpha-2 code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)), and
-- `SITEID` is your chosen unique site name (only alphanumeric characters, any length you want).
+- `SITEID` is your chosen unique site name (only alphanumeric characters, any length you want), and
+- `YYYY-MM-DD` is the download date or the last date in the timeseries.
 
 ### Date formatting help
 
-Date-time stamps can be challenging to format. If you are using `R` you can create a 'POSIXct' object. Below is an example converting a date-time string to the correct format:
+Date-time stamps can be challenging to format.
+
+If you are using `R` you can create a 'POSIXct' object. Below is an example converting a date-time string to the correct format:
 ```R
 datetimeorig <- "8/31/2016 13:24:16" # can also be a vector
-# In POSIX, we designate the format to match the original date time and specify the timezone of the original date time...
+# In POSIX, we designate the format to match the original date time
+#     and specify the timezone of the original date time...
 dtval <- as.POSIXct(datetimeorig, format="%m/%d/%Y %H:%M:%S", tz="EST")
 # Then, just switch the display to UTC
 attr(dtval,"tzone") <- "UTC"
@@ -51,8 +55,8 @@ The `as.POSIXct()` function can convert any date-time format and any time zone. 
 
 ### Saving files
 
-Exporting a .csv from R is easy with the `readr` package:
+Exporting a `.csv` from R is easy with the `readr` package, which saves files without row names and preserves the ISO date-time format (GOOD!):
 ```R
-library(readr) # saves files without row names and preserves the ISO date-time format
-write_csv(datatable, file="NC_Eno_2016-10-13_XX.csv")
+library(readr)
+write_csv(datatable, path="NC_Eno_2016-10-13.csv")
 ```

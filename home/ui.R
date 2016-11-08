@@ -32,23 +32,26 @@ body <- dashboardBody(
       h2("Data upload"),
       fluidRow(
         column(6,
-        box(title = "Upload raw data files", width=12, status = "success",
-          HTML(paste("Only select files from a single site with each upload (although you can select multiple files from different download dates at the same site).",
-          "Before uploading, ensure that files match the <b>REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx</b> format.",
-          "<br><br><u>Primary (core/ancillary) sites</u> can upload their raw datalogger files (CS.dat and hobo .csv) or a pre-processed file.",
-          "<br><u>Leveraged sites</u> need to upload <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>pre-processed data</a>. ",
-          "<b>See the + tab below</b>.")),
-          br(),br(),
-          fileInput('uploadFile', NULL, multiple=TRUE),
-          br(),
-          uiOutput('uploadhandle')
+          box(title = "Upload data files", width=12, status = "success",
+            HTML(paste("Only select files from a single site with each upload. See instructions to the right.<br><br>",
+            "Core sites are those funded by the grant (including ancillary locations). Leveraged sites are those with a different sensor-datalogger array."
+            "Before uploading, ensure that files match the <b>REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx</b> format.")),
+            br(),br(),
+            fileInput('uploadFile', NULL, multiple=TRUE),
+            br(),
+            uiOutput('uploadhandle')
+          )
         ),
-        box(title="Data formatting for leveraged sites", width=12,
-          includeMarkdown('leverageup.md'), collapsible=TRUE, collapsed=TRUE
-        )
-        ),
-        box(title="Upload status", width=6,
-          uiOutput('spinupstatus')
+        column(6,
+          box(title="Instructions for core sites", width=12,
+            includeMarkdown('coreup.md'), collapsible=TRUE, collapsed=TRUE
+          ),
+          box(title="Instructions for leveraged sites", width=12,
+            includeMarkdown('leverageup.md'), collapsible=TRUE, collapsed=TRUE
+          ),
+          box(title="Upload status", width=12,
+            uiOutput('spinupstatus')
+          )
         )
           # box(title = "Upload merged data file to CUAHSI", width=4, status = "primary",
           #   HTML(paste("Please only choose one file at a time. And be sure to check out the <a href='https://docs.google.com/document/d/1rF3Eo2AKlI_ewJubfQlu66-9GDCGCeTL6I6A9WhFcPA/edit?usp=sharing'>data upload SOP</a>. You can perform the upload/QAQC procedure multiple times.<br>",

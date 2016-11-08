@@ -93,7 +93,9 @@ load_file = function(f, gmtoff, logger, fnm){
   }else if(grepl("H",logger)){ # hobo data logger
     read_hobo(f, fnm)
   }else{ # other data - must have just one header row
-    read_csv(f, col_types=cols())
+    xtm = read_csv(f, col_types=cols())
+    colnames(xtm)[1] = "DateTimeUTC"
+    xtm
   }
 }
 
@@ -127,6 +129,12 @@ sp_in = function(ff, gmtoff=NULL){
     })
   }
   fold_ts(x)
+}
+
+sp_in_lev = function(ff){ # single file...
+  cat(paste0(ff$datapath,"\n"))
+  xx = read_csv(ff$datapath)
+  wash_ts(xx, dup_action="average", samp_freq="15M")
 }
 
 get_gmtoff = function(lat, lng, dnld_date, dst=TRUE){

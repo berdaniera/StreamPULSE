@@ -6,19 +6,49 @@ if(useSB){
 }
 coln = reactiveValues(ms=colnms,all=acolnms) # placeholder for column names
 
+getsitedeets = function(){
+  output$uploadhandle = renderUI({
+    HTML(paste0("<h3 class='box-title'>We need some details about your site.</h3>",
+      textInput("sitenm","Site name:"),
+      "<h3 class='box-title'>Coordinates, decimal degrees (e.g., 36.00, -78.97)</h3>",
+      numericInput("sitelat","Latitude (N/S):"),
+      numericInput("sitelng","Longitude (E/W):"),
+      "<h3 class='box-title'>Data sharing</h3>",
+      "Our core sites are sharing data with the public through a <a href='https://www.cuahsi.org/'>CUAHSI</a> database. ",
+      "You can choose to <i>also participate in public data sharing</i> <u>or</u> <i>keep your data private within StreamPULSE</i> ",
+      "(which means that other StreamPULSE members can access your data)."
+      selectizeInput("datasharing","Data sharing agreement", choices=c("Public","StreamPULSE only")),
+      actionButton("addleveraged","Continue", width="100%", style="color: #fff; background-color: #337ab7; border-color: #fff")
+    ))
+  })
+}
+
+item_file_download("58189ef0e4b0bb36a4c82012",names='SPsites.csv',destinations=file.path(tmpwebfile,'SPsites.csv'), overwrite_file=TRUE, session=asb)
+allsites = read_csv(file.path(tmpwebfile,'SPsites.csv')) # csv
+
+observeEvent(input$addleveraged, {
+  newsite = tibble(SITEID=spin$d$site, NAME=input$sitenm, LNG=input$sitelng, LAT=input$sitelat, SHARING=input$datasharing, CONTACT=input$userName)
+  write_csv(newsite, path=file.path(tmpwebfile,'SPsites.csv'), append=TRUE)
+  item_replace_files("58189ef0e4b0bb36a4c82012", files=file.path(tmpwebfile,'SPsites.csv'), session=asb)
+  definecolumns(c("",colnames(spin$d$data)))
+})
+
 definecolumns = function(cn){
   output$uploadhandle = renderUI({
     HTML(paste0("<h3 class='box-title'>Match your columns with the codes below.</h3>",
     "If you do not have a given column, just leave it blank. ",
-    "<i>Note:</i> You only need to do this once (unless the column names in your files change). ",
+    "<i>Note:</i> You will only need to do this once (unless the column names in your files change). ",
     "<i>Your columns not here?</i> Email <a href='mailto:aaron.berdanier@gmail.com'>Aaron</a>.<br>",
       selectizeInput("DateTime_UTC", "DateTime_UTC", choices=cn),
       selectizeInput("DO_mgL", "DO_mgL", choices=cn),
       selectizeInput("satDO_mgL", "satDO_mgL", choices=cn),
       selectizeInput("WaterTemp_C", "WaterTemp_C", choices=cn),
-      selectizeInput("AirTemp_C", "AirTemp_C", choices=cn),
       selectizeInput("WaterPres_kPa", "WaterPres_kPa", choices=cn),
+      selectizeInput("AirTemp_C", "AirTemp_C", choices=cn),
       selectizeInput("AirPres_kPa", "AirPres_kPa", choices=cn),
+      selectizeInput("Depth_m", "Depth_m", choices=cn),
+      selectizeInput("Discharge_m3s", "Discharge_m3s", choices=cn),
+      selectizeInput("Velocity_ms", "Velocity_ms", choices=cn),
       selectizeInput("pH", "pH", choices=cn),
       selectizeInput("fDOM_mV", "fDOM_mV", choices=cn),
       selectizeInput("fDOM_frac", "fDOM_frac", choices=cn),
@@ -27,7 +57,6 @@ definecolumns = function(cn){
       selectizeInput("Nitrate_mgL", "Nitrate_mgL", choices=cn),
       selectizeInput("SpecCond_mScm", "SpecCond_mScm", choices=cn),
       selectizeInput("SpecCond_uScm", "SpecCond_uScm", choices=cn),
-      selectizeInput("Depth_m", "Depth_m", choices=cn),
       selectizeInput("Light_lux", "Light_lux", choices=cn),
       selectizeInput("Light_PAR", "Light_PAR", choices=cn),
       selectizeInput("CO2_ppm", "CO2_ppm", choices=cn),
@@ -36,17 +65,32 @@ definecolumns = function(cn){
   })
 }
 
+sitedb = read_csv("sitelist.csv",col_types=cols())
+coresites = paste(sitedb$REGIONID,sitedb$SITEID,sep="_")
+
 sbprocess = function(ff){
-  updfiles = read_csv("upfiles.txt",col_names="n",col_types=cols())
+  ffregex = "[A-Z]{2}_.*_[0-9]{4}-[0-9]{2}-[0-9]{2}_[A-Z]{2}.[a-zA-Z]{3}" # core sites
+  ffregex2 = "[A-Z]{2}_.*_[0-9]{4}-[0-9]{2}-[0-9]{2}.csv" # leveraged sites
+  if(!all(sapply(ff$name, grepl, pattern=paste(ffregex,ffregex2,sep="|")))) return(list(err="<font style='color:#FF0000;'><i>Please format your filenames as: REGIONID_SITEID_YYYY-MM-DD_LOGGERID.xxx</i></font>"))  # check if all uploaded
+  updfiles = read_csv("upfiles.txt",col_names="n",col_types=cols()) # files already uploaded
   if(all(ff$name %in% updfiles$n)) return(list(err="<font style='color:#FF0000;'><i>All of those files were already uploaded.</i></font>"))  # check if all uploaded
   if(any(ff$name %in% updfiles$n)) ff = ff[-which(ff$name %in% updfiles$n),] # remove files already uploaded
-  state = c("AZ","FL","NC","WI","PR")
-  stlat = c(34, 29.9, 37, 43, 18.3)
-  stlng = c(-111.7, -82.3, -79, -89.6, -65.8)
   x = strsplit(ff$name,"_")
   site = unique(sapply(x, function(y) paste0(y[1],"_",y[2])))
   dnld_date = unique(sapply(x, function(y) y[3]))
   if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site
+  # do the processing
+  if(grepl(site, coresites)){ # if it is a core site, get gmtoff
+    lat = sitedb$LAT[grep(site,coresites)]
+    lng = sitedb$LNG[grep(site,coresites)]
+    gmtoff = get_gmtoff(lat, lng, dnld_date, dst=FALSE)
+    data = try(sp_in(ff, gmtoff), silent=TRUE)  # transform original data
+    if(class(data)=="try-error") return(list(err="<font style='color:#FF0000;'><i>There was an error processing your data, please email <a href='aaron.berdanier@gmail.com'>Aaron</a> with a copy of the files you wish to upload.</i></font>"))
+  }else{ # leveraged site
+    if(nrow(ff)>1) return(list(err="<font style='color:#FF0000;'><i>Please merge your data files prior to upload.</i></font>"))  # check for a single site
+    site = paste0(site,"_L") # designate as leveraged site
+    data = sp_in_lev(ff)
+  }
   # upload zip file to SB
   tupf = tempfile()
   dir.create(tupf)
@@ -56,16 +100,6 @@ sbprocess = function(ff){
   zip(tzipf, ff$datapath, extras="-j")
   item_append_files(sbopath, files=tzipf, session=asb) # into the originals folder
   write_csv(tibble(ff$name), path="upfiles.txt", append=TRUE) # add the uploaded files to the uplist
-  # do the processing
-  sttt = substr(site,1,2)
-  if(any(grepl(sttt,state))){ # if it is a core site, get gmtoff
-    lat <- stlat[grep(sttt,state)]
-    lng <- stlng[grep(sttt,state)]
-    gmtoff <- get_gmtoff(lat, lng, dnld_date, dst=FALSE)
-  }else{
-    gmtoff <- tibble(dnld_date,offs=0)
-  }
-  data = sp_in(ff, gmtoff)  # transform original data
   file.remove(dir(tupf, full.names=TRUE)) # remove locally
   list(site=site, dates=dnld_date, data=data)
 }
@@ -83,18 +117,25 @@ observeEvent(input$uploadFile, {
     if(!(site %in% names(coln$all))) coln$all[[site]]=NULL
     if( site%in%names(coln$ms) & length(colnames(spin$d$data))==length(coln$all[[site]]) ){
       if(all(coln$all[[site]]==colnames(spin$d$data))){
-        output$uploadhandle = renderUI({ HTML(paste0(
-            actionButton("uploadaws", paste("Upload data for",site), width="100%",
-              style="color: #fff; background-color: #337ab7; border-color: #fff"),
-            "<br><br><center>Need to redefine your columns? ",
-            actionLink("redefinecols", paste("Click here to manually reassign columns for",site)),"</center>"
-          ))
-        })
-      }else{
+        allcol = TRUE # all columns available and match
+      }else{ allcol = FALSE }
+    }else{ allcol = FALSE }
+    if(grepl("[A-Za-z]*_.*_L",site)){ leveraged = TRUE }else{ leveraged = FALSE }
+
+    if(allcol){
+      output$uploadhandle = renderUI({ HTML(paste0(
+          actionButton("uploadaws", paste("Upload data for",site), width="100%",
+            style="color: #fff; background-color: #337ab7; border-color: #fff"),
+          "<br><br><center>Need to redefine your columns? ",
+          actionLink("redefinecols", paste("Click here to manually reassign columns for",site)),"</center>"
+        ))
+      })
+    }else{
+      if(leveraged & !site%in%allsites$SITEID){ # need to get site info
+        getsitedeets()
+      }else{ # core site or site data already in...
         definecolumns(c("",colnames(spin$d$data)))
       }
-    }else{
-      definecolumns(c("",colnames(spin$d$data)))
     }
   }
 })
@@ -107,6 +148,9 @@ observeEvent(input$definecols,{
   "AirTemp_C",
   "WaterPres_kPa",
   "AirPres_kPa",
+  "Depth_m",
+  "Discharge_m3s",
+  "Velocity_ms",
   "pH",
   "fDOM_mV",
   "fDOM_frac",
@@ -115,7 +159,6 @@ observeEvent(input$definecols,{
   "Nitrate_mgL",
   "SpecCond_mScm",
   "SpecCond_uScm",
-  "Depth_m",
   "Light_lux",
   "Light_PAR",
   "CO2_ppm")
@@ -126,6 +169,9 @@ observeEvent(input$definecols,{
   input$AirTemp_C,
   input$WaterPres_kPa,
   input$AirPres_kPa,
+  input$Depth_m,
+  input$Discharge_m3s,
+  input$Velocity_ms,
   input$pH,
   input$fDOM_mV,
   input$fDOM_frac,
@@ -134,7 +180,6 @@ observeEvent(input$definecols,{
   input$Nitrate_mgL,
   input$SpecCond_mScm,
   input$SpecCond_uScm,
-  input$Depth_m,
   input$Light_lux,
   input$Light_PAR,
   input$CO2_ppm)
@@ -152,9 +197,9 @@ observeEvent(input$definecols,{
   site = spin$d$site
   output$uploadhandle = renderUI({ HTML(paste0(
       actionButton("uploadaws", paste("Upload data for",site), width="100%",
-        style="color: #fff; background-color: #337ab7; border-color: #fff"),
-      "<br><br><center>Need to redefine your columns? ",
-      actionLink("redefinecols", paste("Click here to manually reassign columns for",site)),"</center>"
+        style="color: #fff; background-color: #337ab7; border-color: #fff")#,
+      # "<br><br><center>Need to redefine your columns? ",
+      # actionLink("redefinecols", paste("Click here to manually reassign columns for",site)),"</center>"
     ))
   })
 })
