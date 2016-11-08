@@ -33,7 +33,7 @@ Bonus variables include:
 ### File naming
 
 Name your upload file -- `REGIONID_SITEID_YYYY-MM-DD.csv` -- where
-- `REGIONID` is the name of your region (US: [FIPS state code](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code); International: [ISO 3166-1 alpha-2 code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)), and
+- `REGIONID` is the name of your region (US: [FIPS state code](https://en.wikipedia.org/wiki/Federal_Information_Processing_Standard_state_code); International: [ISO 3166-1 alpha-2 code](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)),
 - `SITEID` is your chosen unique site name (only alphanumeric characters, any length you want), and
 - `YYYY-MM-DD` is the download date or the last date in the timeseries.
 
@@ -49,7 +49,7 @@ datetimeorig <- "8/31/2016 13:24:16" # can also be a vector
 dtval <- as.POSIXct(datetimeorig, format="%m/%d/%Y %H:%M:%S", tz="EST")
 # Then, just switch the display to UTC
 attr(dtval,"tzone") <- "UTC"
-# The output will be 2016-08-31T13:24:16Z
+# The output will be 2016-08-31T18:24:16Z
 ```
 The `as.POSIXct()` function can convert any date-time format and any time zone. For details on all of the format structure codes, [see the R documentation](https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html).
 
