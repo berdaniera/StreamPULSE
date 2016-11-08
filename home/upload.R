@@ -13,6 +13,8 @@ getsitedeets = function(){
       "<h3 class='box-title'>Coordinates, decimal degrees (e.g., 36.00, -78.97)</h3>",
       numericInput("sitelat","Latitude (N/S):"),
       numericInput("sitelng","Longitude (E/W):"),
+      "<h3 class='box-title'>Associated USGS station code (if none, leave blank):</h3>",
+      numericInput("siteusgs","USGS ID:"),
       "<h3 class='box-title'>Data sharing</h3>",
       "Our core sites are sharing data with the public through a <a href='https://www.cuahsi.org/'>CUAHSI</a> database. ",
       "You can choose to <i>also participate in public data sharing</i> <u>or</u> <i>keep your data private within StreamPULSE</i> ",
@@ -28,7 +30,8 @@ item_file_download("58189ef0e4b0bb36a4c82012",names='SPsites.csv',destinations=f
 allsites = read_csv(file.path(tmpwebfile,'SPsites.csv')) # csv
 
 observeEvent(input$addleveraged, {
-  newsite = tibble(SITEID=spin$d$site, NAME=input$sitenm, LNG=input$sitelng, LAT=input$sitelat, SHARING=input$datasharing, CONTACT=input$userName)
+  if(input$siteusgs==""){ usgsid = NA }else{ usgsid = input$siteusgs }
+  newsite = tibble(SITEID=spin$d$site, NAME=input$sitenm, LNG=input$sitelng, LAT=input$sitelat, USGS=usgsid, SHARING=input$datasharing, CONTACT=input$userName)
   write_csv(newsite, path=file.path(tmpwebfile,'SPsites.csv'), append=TRUE)
   item_replace_files("58189ef0e4b0bb36a4c82012", files=file.path(tmpwebfile,'SPsites.csv'), session=asb)
   definecolumns(c("",colnames(spin$d$data)))
