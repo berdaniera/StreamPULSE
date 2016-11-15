@@ -21,7 +21,7 @@ You can upload raw data (from the datalogger) *and/or* calibrated data (e.g., tu
 If you modify a datalogger file to generate calibrated and derived variables, you must save it as a `.csv` with:
 - the `_XX.csv` extension,
 - one header row followed directly by data rows, one row per timestamp,
-- the first column as a Date-Time stamp converted to UTC standard time and formatted as: `YYYY-MM-DD HH:MM:SS`, and
+- the *first column* as a Date-Time stamp converted to UTC standard time and formatted as: `YYYY-MM-DD HH:MM:SS`, and
 - additional columns for each data variable.
 
 ### Variables
@@ -62,7 +62,7 @@ dtval <- as.POSIXct(datetimeorig, format="%m/%d/%y %H:%M:%S", tz="EST")
 attr(dtval,"tzone") <- "UTC"
 # The output will be 2016-08-31T18:24:16Z
 ```
-The `as.POSIXct()` function can convert any date-time format and any time zone. For details on all of the format structure codes, [see the R documentation](https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html).
+The as.POSIXct function can convert any date-time format and any time zone. For details on all of the format structure codes, [see the R documentation](https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html).
 
 In `matlab` you can create a date time string with the numeric values for your timestamp, accounting for the UTC offset:
 ```
@@ -71,11 +71,13 @@ timeVec = [time.year time.month time.day time.hour-time.UTC time.min time.sec];
 timeStr = datestr(timeVec,'yyyy-mm-dd HH:MM:SS'); % what you will save
 ```
 
-In `Excel` you can modify the timestamp based on the timezone offset:
+In `Excel` you can modify the timestamp with a formula based on the timezone offset:
 ```
 =TimeCell+(tzOffsetHours/24)
 ```
-and then modify the cell format of the new column manually to match `YYYY-MM-DD HH:MM:SS` and save as a `.csv` from there.
+Then modify the cell format of the new column with a "custom" type to match `YYYY-MM-DD HH:MM:SS` ([see documentation](https://support.office.com/en-us/article/Format-a-date-the-way-you-want-8e10019e-d5d8-47a1-ba95-db95123d273e)).
+
+Be sure to put the modified date-time stamp as the first column in your exported `.csv`.
 
 ### Saving files
 
