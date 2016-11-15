@@ -43,7 +43,7 @@ Name your upload file -- `REGIONID_SITEID_YYYY-MM-DD.csv` -- where
 
 Date-time stamps can be challenging to format.
 
-If you are using `R` you can create a 'POSIXct' object. Below is an example converting a date-time string to the correct format:
+In `R` you can create a 'POSIXct' object. Below is an example converting a date-time string to the correct format:
 ```R
 datetimeorig <- "8/31/16 13:24:16" # can also be a vector
 # In POSIX, we 1. designate the format to match the original date time
@@ -55,12 +55,18 @@ attr(dtval,"tzone") <- "UTC"
 ```
 The `as.POSIXct()` function can convert any date-time format and any time zone. For details on all of the format structure codes, [see the R documentation](https://stat.ethz.ch/R-manual/R-devel/library/base/html/strptime.html).
 
-If you are using `matlab` you can create a date time string with the numeric values for your timestamp, accounting for the UTC offset:
+In `matlab` you can create a date time string with the numeric values for your timestamp, accounting for the UTC offset:
 ```
 time.UTC = -5; % UTC offset for EST
 timeVec = [time.year time.month time.day time.hour-time.UTC time.min time.sec];
 timeStr = datestr(timeVec,'yyyy-mm-dd HH:MM:SS'); % what you will save
 ```
+
+In `Excel` you can modify the timestamp based on the timezone offset:
+```
+=TimeCell+(tzOffsetHours/24)
+```
+and then modify the cell format of the new column manually to match `YYYY-MM-DD HH:MM:SS` and save as a `.csv` from there.
 
 ### Saving files
 
