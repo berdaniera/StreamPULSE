@@ -86,16 +86,15 @@ body <- dashboardBody(
       uiOutput("viz_site"),
       HTML("<h4>Date range:</h4>"),
       dateRangeInput("ddate", label=NULL),
-      br(),
+      HTML("<h4>Aggregation level:</h4>"),
+      selectizeInput("aggregate", label=NULL, choices=list("15 Min (default)"="15M","1 Hour"="1H","1 Day"="1D")),
       HTML("<h4>Visualization:</h4>"),
       tabsetPanel(
-        tabPanel("Time series", value="ts",
-          br(),
+        tabPanel("Time series", value="ts", br(),
           HTML("<h4>Variables to display (can choose multiple):</h4>"),
           selectizeInput("ts_vars", NULL, multiple=TRUE, choices="")
         ),
-        tabPanel("Pair plots", value="pp",
-          br(),
+        tabPanel("Pair plots", value="pp", br(),
           HTML("<h4>Variables to display:</h4>"),
           selectizeInput("pp_vars_x", "X variable", multiple=FALSE,choices=""),
           selectizeInput("pp_vars_y", "Y variable", multiple=FALSE,choices="")

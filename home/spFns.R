@@ -177,9 +177,9 @@ snap_ts = function(x, samp_freq, nearest=FALSE){
     }else{stop("Please enter a correct string")}
   }
   if(nearest){ # round to closest interval
-    as.POSIXct(round(as.double(x)/td)*td,origin="1970-01-01")
+    as.POSIXct(round(as.double(x)/td)*td,origin="1970-01-01",tz="UTC")
   }else{ # round to floor
-    as.POSIXct(floor(as.double(x)/td)*td,origin="1970-01-01")
+    as.POSIXct(floor(as.double(x)/td)*td,origin="1970-01-01",tz="UTC")
   }
 }
 

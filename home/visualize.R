@@ -43,6 +43,10 @@ observe({
   if( !is.null(viz$a) ){
     if( length(which(viz$a$DateTime_UTC>dfrom & viz$a$DateTime_UTC<dto)) ){
       vdat = viz$a %>% filter(DateTime_UTC>dfrom & DateTime_UTC<dto) %>% spread(variable, value)
+      if(input$aggregate!="15M"){
+        vdat$DateTime_UTC = snap_ts(vdat$DateTime_UTC,input$aggregate)
+        vdat = vdat %>% group_by(DateTime_UTC) %>% summarise_each(funs(mean(.,na.rm=T))) %>% ungroup()
+      }
       if(input$viztab=="pp" & input$pp_vars_x%in%colnames(vdat)){
         vdat = vdat %>% select_(.dots=c(input$pp_vars_x,input$pp_vars_y))
         output$viz_plot = renderPlot({
