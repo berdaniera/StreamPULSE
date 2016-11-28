@@ -26,6 +26,12 @@ body <- dashboardBody(
       ),
       fluidRow(
         uiOutput('loginbox'),
+        # loading bar
+        conditionalPanel('typeof output.loginbox == "undefined"',
+          box(title="Collecting the latest StreamPULSE data... sit tight!",
+            HTML('<div class="progress"><div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="width:100%"></div></div>')
+          )
+        ),
         box(title="Updates",dataTableOutput("updatetable"))
       )
     ),

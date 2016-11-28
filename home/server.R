@@ -13,7 +13,6 @@ ac = function(x) as.character(x)
 if(is_logged_in()) session_logout()
 asb = authenticate_sb(Sys.getenv("SB_LOGIN"), Sys.getenv("SB_PASS")) # login with renviron data
 source("spFns.R")
-
 tdatf = tempfile() # temporary data folder
 dir.create(tdatf)
 tmpwebfile = tempfile() # temporary web folder
@@ -49,7 +48,6 @@ loginfail <- box(title = "Login",status="danger",solidHeader=TRUE,#collapsible=T
                  actionButton("Login", "Log in"),
                  div(align="right",a(href="mailto:abb30@duke.edu","Email to create an account.")))
 
-
 server <- function(input, output, session) {
   USER = reactiveValues(Logged = FALSE, Name = "")
   #
@@ -66,14 +64,14 @@ server <- function(input, output, session) {
     Up=c("Download option available for raw data","QA/QC interface linked with data upload","SOP documents linked in","Dashboard online, accepting file uploads","Dashboard created"))
 
   output$useBox <- renderValueBox({ valueBox(length(users$user), "Users", icon = icon("users")) })
-  nobs <- floor(sum(read_csv("datapoints.txt",col_names="n",col_types=cols()))/1000)
+  nobserv <- floor(sum(read_csv("datapoints.txt",col_names="n",col_types=cols()))/1000)
   # nobs <- 0
-  output$obsBox <- renderValueBox({ valueBox(paste0(nobs,"K"), "Observations", icon = icon("bar-chart"), color="yellow") })
+  output$obsBox <- renderValueBox({ valueBox(paste0(nobserv,"K"), "Observations", icon = icon("bar-chart"), color="yellow") })
   output$modBox <- renderValueBox({ valueBox(0, "Models run", icon = icon("cloud")) })
   output$updatetable <- renderDataTable({updatestab},
-    options = list(paging = FALSE,searching=FALSE,ordering=FALSE),escape=FALSE,style="bootstrap",selection="none")
+    options = list(paging=FALSE,searching=FALSE,ordering=FALSE),escape=FALSE,style="bootstrap",selection="none")
   output$datatable <- renderDataTable({datatab},
-    options = list(paging = FALSE,searching=FALSE,ordering=FALSE),escape=FALSE,style="bootstrap",selection="none")
+    options = list(paging=FALSE,searching=FALSE,ordering=FALSE),escape=FALSE,style="bootstrap",selection="none")
 
   output$loginbox <- renderUI(login)
   observeEvent(input$Login, {

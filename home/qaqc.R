@@ -22,7 +22,8 @@ output$qaqcsite = renderUI({
     div(style="display:inline-block; vertical-align:top;",
       selectizeInput("toqaqc", NULL, sitenms, multiple = FALSE, options = NULL)),
     div(style="display:inline-block; vertical-align:top;",
-      actionButton("qaqcit","Flag this data", class="color: #fff; background-color: #337ab7; border-color: #fff"))
+      actionButton("qaqcit","Flag this data", class="color: #fff; background-color: #337ab7; border-color: #fff")),
+    span(HTML("<p>If you have administrative privileges for this site then you can edit the master flags. Otherwise, you can create your own flags and save the flagged data for your own use. If you believe you should have administrative privileges, please <a href='mailto:aaron.berdanier@gmail.com'>email Aaron</a>.</p>"))
   )
 })
 
