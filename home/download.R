@@ -16,7 +16,7 @@ output$dnldit = downloadHandler(
   content = function(file) {
     sitestodl = allsites$SITEID[which(sitenames%in%input$todnld)] # get siteid from name
     for(sf in sitestodl){
-      f = grep(stid, dnld$ff, value=TRUE)
+      f = grep(sitestodl, dnld$ff, value=TRUE)
       gf = item_file_download(sbrpath, names=f, destinations=file.path(tdatf,f), overwrite_file=TRUE, session=asb) # save locally
       for(f in gf) load(f) # load that site locally
     }
