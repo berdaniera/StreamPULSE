@@ -1,4 +1,6 @@
 *.Renviron
+*.Rda
+*.Rdata
 *.csv
 *.txt
 *.db

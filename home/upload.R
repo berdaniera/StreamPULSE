@@ -26,8 +26,6 @@ getsitedeets = function(){
 }
 
 #item_replace_files("58189ef0e4b0bb36a4c82012",files='SPsites.csv', session=asb)
-item_file_download("58189ef0e4b0bb36a4c82012",names='SPsites.csv',destinations=file.path(tmpwebfile,'SPsites.csv'), overwrite_file=TRUE, session=asb)
-allsites = read_csv(file.path(tmpwebfile,'SPsites.csv')) # csv
 
 observeEvent(input$addleveraged, {
   if(input$siteusgs==""){ usgsid = NA }else{ usgsid = input$siteusgs }
@@ -69,9 +67,6 @@ definecolumns = function(cn){
   })
 }
 
-sitedb = read_csv("sitelist.csv",col_types=cols())
-coresites = paste(sitedb$REGIONID,sitedb$SITEID,sep="_")
-
 sbprocess = function(ff){
   ffregex = "[A-Z]{2}_.*_[0-9]{4}-[0-9]{2}-[0-9]{2}_[A-Z]{2}.[a-zA-Z]{3}" # core sites
   ffregex2 = "[A-Z]{2}_.*_[0-9]{4}-[0-9]{2}-[0-9]{2}.csv" # leveraged sites
@@ -84,7 +79,7 @@ sbprocess = function(ff){
   dnld_date = unique(sapply(x, function(y) y[3]))
   if(length(site)>1) return(list(err="<font style='color:#FF0000;'><i>Please only select data from a single site.</i></font>"))  # check for a single site
   # do the processing
-  if(grepl(site, coresites)){ # if it is a core site, get gmtoff
+  if(any(grepl(site, coresites))){ # if it is a core site, get gmtoff
     lat = sitedb$LAT[grep(site,coresites)]
     lng = sitedb$LNG[grep(site,coresites)]
     gmtoff = get_gmtoff(lat, lng, dnld_date, dst=FALSE)
