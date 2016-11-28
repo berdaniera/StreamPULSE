@@ -31,7 +31,7 @@ useSB = TRUE
 item_file_download("58189ef0e4b0bb36a4c82012",names='SPsites.csv',destinations=file.path(tmpwebfile,'SPsites.csv'), overwrite_file=TRUE, session=asb)
 allsites = read_csv(file.path(tmpwebfile,'SPsites.csv')) # csv
 sitedb = read_csv("sitelist.csv",col_types=cols())
-coresites = paste(sitedb$REGIONID,sitedb$SITEID,sep="_")
+coresites = paste0(sitedb$REGIONID,"_",sitedb$SITEID)
 b = item_list_files(sbrpath, session=asb)
 dnld = reactiveValues(ff=b$fname) # the raw data that are available
 sitenames = paste(substr(allsites$SITEID,1,2), allsites$NAME, sep=" - ")
