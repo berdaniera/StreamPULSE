@@ -63,7 +63,7 @@ server <- function(input, output, session) {
   updatestab <- data.frame(Date=c('2016-10-25','2016-09-06','2016-09-03','2016-07-08','2016-07-01'),
     Up=c("Download option available for raw data","QA/QC interface linked with data upload","SOP documents linked in","Dashboard online, accepting file uploads","Dashboard created"))
 
-  output$useBox <- renderValueBox({ valueBox(length(users$user), "Users", icon = icon("users")) })
+  output$useBox <- renderValueBox({ valueBox(length(unique(users$user)), "Users", icon = icon("users")) })
   nobserv <- floor(sum(read_csv("datapoints.txt",col_names="n",col_types=cols()))/1000)
   # nobs <- 0
   output$obsBox <- renderValueBox({ valueBox(paste0(nobserv,"K"), "Observations", icon = icon("bar-chart"), color="yellow") })
