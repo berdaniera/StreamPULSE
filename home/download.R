@@ -14,9 +14,13 @@ output$datadnld = renderUI({
 output$dnldit = downloadHandler(
   filename = function() { paste0('StreamPULSE_',Sys.Date(),'.csv') },
   content = function(file) {
+    print(input$todnld)
+    print(sitenames)
     sitestodl = allsites$SITEID[which(sitenames%in%input$todnld)] # get siteid from name
+    print(sitestodl)
+    print(dnld$ff)
     for(sf in sitestodl){
-      f = grep(sitestodl, dnld$ff, value=TRUE)
+      f = grep(sf, dnld$ff, value=TRUE)
       gf = item_file_download(sbrpath, names=f, destinations=file.path(tdatf,f), overwrite_file=TRUE, session=asb) # save locally
       for(f in gf) load(f) # load that site locally
     }
