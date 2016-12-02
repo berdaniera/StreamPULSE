@@ -95,11 +95,11 @@ server <- function(input, output, session) {
       logoutstr <- div(align="right",a(href="/","Log out"))
       loginpass <- box(title = "Logged in!",status="success",solidHeader=TRUE,userstr,logoutstr)
       output$loginbox <- renderUI(loginpass)
-      output$Upload <- renderMenu(
-        menuItem("Upload", icon = icon("cloud-upload"),
-          menuSubItem("Sensor data", tabName="upload"),
-          menuSubItem("Grab samples (coming soon)")
-      ))
+      output$Upload <- renderMenu( menuItem("Upload", tabName="upload", icon = icon("cloud-upload")) )
+        # ,
+        #   menuSubItem("Sensor data", tabName="upload"),
+        #   menuSubItem("Grab samples (coming soon)")
+      # ))
       output$QAQC <- renderMenu( menuItem("QAQC",tabName="qaqc", icon=icon("magic")) )
       output$Viz <- renderMenu( menuItem("Vizualize", tabName = "viz", icon = icon("line-chart")) )
       output$Download <- renderMenu( menuItem("Download", tabName = "download", icon = icon("download")) )
