@@ -41,6 +41,11 @@ login <- box(title = "Login",status="primary",solidHeader=TRUE,#collapsible=TRUE
              actionButton("Login", "Log in"),
              div(align="right",a(href="mailto:abb30@duke.edu","Email to create an account.")))
 
+login <- box(title = "Login",status="primary",solidHeader=TRUE,#collapsible=TRUE,
+            div(align="center",HTML("We've moved to http://data.streampulse.org")),
+            div(align="center",a(href="http://data.streampulse.org","Click here to go to the new StreamPULSE dashboard.")))
+
+
 loginfail <- box(title = "Login",status="danger",solidHeader=TRUE,#collapsible=TRUE,
                  textInput("userName", "Username"), # make this orange
                  passwordInput("passwd", "Password"),
